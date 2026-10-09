@@ -1,9 +1,10 @@
 """
-🎨 Gestor de Investimentos B3 — Edição Premium
-Streamlit + Pandas + Supabase + Brapi (cotações em tempo real)
+🎯 Gestor de Investimentos B3 — Edição Premium Integrada com Login
+Streamlit + Pandas + Supabase Auth + Brapi (cotações + Bazin)
 """
 
 import io
+from dataclasses import dataclass
 from datetime import datetime, date
 
 import numpy as np
@@ -15,7 +16,7 @@ import streamlit as st
 from supabase import create_client, Client
 
 # ══════════════════════════════════════════════════════════════════════
-# CONFIGURAÇÃO DA PÁGINA
+# CONFIG
 # ══════════════════════════════════════════════════════════════════════
 st.set_page_config(
     page_title="Gestor Premium B3",
@@ -24,22 +25,20 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+BAZIN_TAXA = 0.06  # yield mínimo desejado (6% a.a.)
+
 # ══════════════════════════════════════════════════════════════════════
-# CSS CUSTOMIZADO — DESIGN PREMIUM
+# CSS PREMIUM
 # ══════════════════════════════════════════════════════════════════════
 st.markdown(
     """
     <style>
-    /* Reset geral */
     .main { background: radial-gradient(circle at top left, #0B1220 0%, #060B14 100%); }
     .block-container { padding-top: 1.5rem; padding-bottom: 3rem; max-width: 1400px; }
 
-    /* Header com gradiente */
     .hero {
         background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 50%, #7B61FF 100%);
-        padding: 28px 32px;
-        border-radius: 20px;
-        margin-bottom: 24px;
+        padding: 28px 32px; border-radius: 20px; margin-bottom: 24px;
         box-shadow: 0 12px 40px rgba(0, 229, 160, 0.15);
         display: flex; align-items: center; justify-content: space-between;
     }
@@ -51,15 +50,11 @@ st.markdown(
         font-size: 13px; letter-spacing: 0.5px;
     }
 
-    /* Cards de métricas */
     .metric-card {
         background: linear-gradient(145deg, #131C2F 0%, #0F1729 100%);
         border: 1px solid rgba(0, 229, 160, 0.12);
-        padding: 20px 22px;
-        border-radius: 16px;
-        transition: all 0.25s ease;
-        position: relative;
-        overflow: hidden;
+        padding: 20px 22px; border-radius: 16px;
+        transition: all 0.25s ease; position: relative; overflow: hidden;
     }
     .metric-card::before {
         content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
@@ -77,7 +72,6 @@ st.markdown(
     .delta.down { color: #FF5C7A; }
     .delta.neutral { color: #7A8699; }
 
-    /* Sidebar */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0B1220 0%, #060B14 100%);
         border-right: 1px solid rgba(255,255,255,0.05);
@@ -85,64 +79,78 @@ st.markdown(
     section[data-testid="stSidebar"] .stButton > button {
         background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 100%);
         color: #060B14; font-weight: 700; border: none;
-        border-radius: 10px; padding: 10px 16px;
-        transition: all 0.2s ease;
+        border-radius: 10px; padding: 10px 16px; transition: all 0.2s ease;
     }
     section[data-testid="stSidebar"] .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 229, 160, 0.3);
+        transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 229, 160, 0.3);
     }
 
-    /* Tabs */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
+    .stTabs [data-baseweb="tab-list"] { gap: 8px; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05); }
     .stTabs [data-baseweb="tab"] {
         background: #131C2F; border-radius: 12px 12px 0 0; padding: 10px 20px;
         color: #7A8699; font-weight: 600; border: 1px solid transparent;
     }
     .stTabs [aria-selected="true"] {
         background: linear-gradient(135deg, rgba(0,229,160,0.15), rgba(0,168,232,0.1));
-        color: #00E5A0 !important;
-        border-bottom: 2px solid #00E5A0;
+        color: #00E5A0 !important; border-bottom: 2px solid #00E5A0;
     }
 
-    /* Botões gerais */
     .stButton > button {
         background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 100%);
         color: #060B14; font-weight: 700; border: none; border-radius: 10px;
         transition: all 0.2s ease;
     }
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 229, 160, 0.25);
-    }
+    .stButton > button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 229, 160, 0.25); }
 
-    /* Dataframes */
     .stDataFrame { border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
 
-    /* Inputs */
     .stTextInput input, .stNumberInput input, .stDateInput input {
         background: #131C2F !important; border-radius: 10px !important;
         border: 1px solid rgba(255,255,255,0.08) !important; color: #E6EDF7 !important;
     }
 
-    /* Section title */
     .section-title {
         font-size: 18px; font-weight: 700; color: #E6EDF7;
-        margin: 24px 0 12px 0; padding-left: 12px;
-        border-left: 3px solid #00E5A0;
+        margin: 24px 0 12px 0; padding-left: 12px; border-left: 3px solid #00E5A0;
     }
 
-    /* Pills de tags */
-    .pill {
-        display: inline-block; padding: 4px 12px; border-radius: 999px;
-        font-size: 11px; font-weight: 700; letter-spacing: 0.4px;
+    .bazin-card {
+        background: linear-gradient(135deg, rgba(0,229,160,0.10), rgba(0,168,232,0.06));
+        border: 1px solid rgba(0,229,160,0.30); border-radius: 14px;
+        padding: 14px 22px; margin: 12px 0 18px 0;
+        display: flex; justify-content: space-between; align-items: center;
+        flex-wrap: wrap; gap: 16px;
     }
-    .pill.acao { background: rgba(0, 168, 232, 0.15); color: #00A8E8; }
-    .pill.fii  { background: rgba(0, 229, 160, 0.15); color: #00E5A0; }
+    .bazin-card .cell { display: flex; flex-direction: column; }
+    .bazin-card .cell .lbl { color: #7A8699; font-size: 11px; font-weight: 700; letter-spacing: 1px; }
+    .bazin-card .cell .val { color: #E6EDF7; font-size: 20px; font-weight: 800; margin-top: 2px; }
 
-    /* Esconde branding */
+    .status-pill {
+        display: inline-block; padding: 8px 18px; border-radius: 999px;
+        font-size: 13px; font-weight: 800; letter-spacing: 0.5px;
+    }
+    .status-forte   { background: rgba(0,229,160,0.18); color: #00E5A0; border: 1px solid rgba(0,229,160,0.5); }
+    .status-bom     { background: rgba(74,222,128,0.15); color: #4ADE80; border: 1px solid rgba(74,222,128,0.4); }
+    .status-proximo { background: rgba(250,204,21,0.15); color: #FACC15; border: 1px solid rgba(250,204,21,0.4); }
+    .status-caro    { background: rgba(255,92,122,0.15); color: #FF5C7A; border: 1px solid rgba(255,92,122,0.4); }
+    .status-sem     { background: rgba(122,134,153,0.15); color: #7A8699; border: 1px solid rgba(122,134,153,0.4); }
+
+    /* ─── Tela de login ─── */
+    .login-wrap {
+        max-width: 440px; margin: 60px auto 0 auto;
+        background: linear-gradient(145deg, #131C2F 0%, #0F1729 100%);
+        border: 1px solid rgba(0, 229, 160, 0.18);
+        border-radius: 22px; padding: 40px 36px 26px 36px;
+        box-shadow: 0 24px 60px rgba(0, 229, 160, 0.12);
+        text-align: center;
+    }
+    .login-logo { font-size: 54px; margin-bottom: 6px;
+                  filter: drop-shadow(0 0 22px rgba(0, 229, 160, 0.45)); }
+    .login-title { font-size: 26px; font-weight: 800; color: #E6EDF7;
+                   letter-spacing: -0.5px; margin-bottom: 4px; }
+    .login-sub { font-size: 13px; color: #7A8699;
+                 margin-bottom: 6px; letter-spacing: 0.5px; }
+
     #MainMenu {visibility: hidden;} footer {visibility: hidden;}
     </style>
     """,
@@ -150,12 +158,11 @@ st.markdown(
 )
 
 # ══════════════════════════════════════════════════════════════════════
-# CONEXÃO SUPABASE
+# SUPABASE (precisa existir ANTES do bloco de autenticação)
 # ══════════════════════════════════════════════════════════════════════
 @st.cache_resource(show_spinner=False)
 def init_supabase() -> Client:
     return create_client(st.secrets["supabase"]["url"], st.secrets["supabase"]["key"])
-
 
 try:
     supabase: Client = init_supabase()
@@ -166,7 +173,93 @@ except Exception as e:
 BRAPI_TOKEN = st.secrets["brapi"]["token"]
 
 # ══════════════════════════════════════════════════════════════════════
-# APIs (BRAPI)
+# AUTENTICAÇÃO (LOGIN APENAS)
+# ══════════════════════════════════════════════════════════════════════
+if "auth_user" not in st.session_state:
+    st.session_state.auth_user = None
+
+
+def fazer_login(email: str, senha: str):
+    try:
+        resp = supabase.auth.sign_in_with_password({"email": email, "password": senha})
+        return resp.user, None
+    except Exception as e:
+        msg = str(e)
+        if "Invalid login credentials" in msg:
+            return None, "❌ Email ou senha incorretos."
+        if "Email not confirmed" in msg:
+            return None, "📧 Confirme seu email antes de entrar."
+        return None, f"❌ {msg}"
+
+
+def fazer_logout():
+    try:
+        supabase.auth.sign_out()
+    except Exception:
+        pass
+    for k in list(st.session_state.keys()):
+        if k.startswith(("auth_", "cot_", "cfg_")):
+            del st.session_state[k]
+    st.rerun()
+
+
+def render_login_screen():
+    """Tela cheia de login (sem cadastro — usuários criados no painel Supabase)."""
+    st.markdown(
+        """
+        <div class="login-wrap">
+            <div class="login-logo">💎</div>
+            <div class="login-title">Gestor Premium B3</div>
+            <div class="login-sub">AÇÕES · FIIs · BAZIN · TEMPO REAL</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+    with col2:
+        with st.form("form_login"):
+            email = st.text_input("📧 Email", key="login_email")
+            senha = st.text_input("🔒 Senha", type="password", key="login_senha")
+            entrar = st.form_submit_button("🔓 Entrar", use_container_width=True)
+
+            if entrar:
+                if not email or not senha:
+                    st.warning("Preencha email e senha.")
+                else:
+                    with st.spinner("Entrando..."):
+                        user, err = fazer_login(email, senha)
+                    if err:
+                        st.error(err)
+                    else:
+                        st.session_state.auth_user = {
+                            "id": user.id,
+                            "email": user.email,
+                        }
+                        st.success("✅ Bem-vindo!")
+                        st.rerun()
+
+        st.markdown(
+            """
+            <div style="text-align:center; margin-top:18px; color:#7A8699; font-size:12px;">
+                Acesso restrito · Solicite seu cadastro ao administrador
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+# ── Gate de autenticação ───────────────────────────────────────────────
+if not st.session_state.get("auth_user"):
+    render_login_screen()
+    st.stop()
+
+USER = st.session_state.auth_user
+USER_ID = USER["id"]
+USER_EMAIL = USER["email"]
+
+# ══════════════════════════════════════════════════════════════════════
+# APIs DE MERCADO (BRAPI)
 # ══════════════════════════════════════════════════════════════════════
 @st.cache_data(ttl=300, show_spinner=False)
 def get_cotacao(ticker: str) -> float:
@@ -220,38 +313,96 @@ def calcular_dy_12m(ticker: str, tipo: str) -> float:
 
 
 # ══════════════════════════════════════════════════════════════════════
-# BANCO (SUPABASE)
+# NÚCLEO INTELIGENTE — BAZIN
+# ══════════════════════════════════════════════════════════════════════
+@dataclass
+class AtivoInfo:
+    ticker: str
+    tipo: str
+    cotacao: float
+    dy_12m: float
+    dividendo_anual: float
+    preco_teto: float
+    margem: float
+    status: str
+    status_key: str
+    cor: str
+
+
+@st.cache_data(ttl=300, show_spinner=False)
+def get_ativo_info(ticker: str, tipo: str = "acao") -> AtivoInfo:
+    cot = get_cotacao(ticker)
+    dy = calcular_dy_12m(ticker, tipo)
+    div_anual = cot * dy
+    teto = div_anual / BAZIN_TAXA if div_anual > 0 else 0.0
+    margem = ((teto - cot) / teto * 100) if teto > 0 else 0.0
+
+    if teto <= 0:
+        status, key, cor = "⚪ SEM DADOS", "sem", "#7A8699"
+    elif cot <= teto * 0.85:
+        status, key, cor = "🟢 COMPRA FORTE", "forte", "#00E5A0"
+    elif cot <= teto:
+        status, key, cor = "🟢 BOM MOMENTO", "bom", "#4ADE80"
+    elif cot <= teto * 1.10:
+        status, key, cor = "🟡 PRÓXIMO DO TETO", "proximo", "#FACC15"
+    else:
+        status, key, cor = "🔴 ACIMA DO TETO", "caro", "#FF5C7A"
+
+    return AtivoInfo(ticker, tipo, cot, dy, div_anual, teto, margem, status, key, cor)
+
+
+def status_pill_html(info: AtivoInfo) -> str:
+    cls = {
+        "forte": "status-forte", "bom": "status-bom",
+        "proximo": "status-proximo", "caro": "status-caro", "sem": "status-sem",
+    }[info.status_key]
+    return f'<span class="status-pill {cls}">{info.status}</span>'
+
+
+def cor_status(key):
+    return {
+        "forte": "#00E5A0", "bom": "#4ADE80",
+        "proximo": "#FACC15", "caro": "#FF5C7A", "sem": "#7A8699",
+    }.get(key, "#7A8699")
+
+
+# ══════════════════════════════════════════════════════════════════════
+# BANCO (POR USUÁRIO)
 # ══════════════════════════════════════════════════════════════════════
 @st.cache_data(ttl=15, show_spinner=False)
-def carregar_ativos(tabela: str) -> pd.DataFrame:
+def carregar_ativos(tabela: str, user_id: str) -> pd.DataFrame:
     try:
-        resp = supabase.table(tabela).select("*").order("ticker").execute()
+        resp = (
+            supabase.table(tabela).select("*")
+            .eq("user_id", user_id).order("ticker").execute()
+        )
         return pd.DataFrame(resp.data) if resp.data else pd.DataFrame()
     except Exception as e:
         st.error(f"Erro ao carregar {tabela}: {e}")
         return pd.DataFrame()
 
 
-def salvar_ativo(tabela: str, dados: dict):
+def salvar_ativo(tabela: str, dados: dict, user_id: str):
+    dados["user_id"] = user_id
     supabase.table(tabela).insert(dados).execute()
     carregar_ativos.clear()
 
 
-def atualizar_ativo(tabela: str, id_: int, dados: dict):
+def atualizar_ativo(tabela: str, id_: int, dados: dict, user_id: str):
     dados["updated_at"] = datetime.now().isoformat()
-    supabase.table(tabela).update(dados).eq("id", id_).execute()
+    supabase.table(tabela).update(dados).eq("id", id_).eq("user_id", user_id).execute()
     carregar_ativos.clear()
 
 
-def deletar_ativo(tabela: str, id_: int):
-    supabase.table(tabela).delete().eq("id", id_).execute()
+def deletar_ativo(tabela: str, id_: int, user_id: str):
+    supabase.table(tabela).delete().eq("id", id_).eq("user_id", user_id).execute()
     carregar_ativos.clear()
 
 
 @st.cache_data(ttl=15, show_spinner=False)
-def carregar_config() -> dict:
+def carregar_config(user_id: str) -> dict:
     try:
-        resp = supabase.table("config").select("*").eq("id", 1).execute()
+        resp = supabase.table("config").select("*").eq("user_id", user_id).execute()
         if resp.data:
             return resp.data[0]
     except Exception:
@@ -259,8 +410,8 @@ def carregar_config() -> dict:
     return {"valor_disponivel": 0.0, "meta_renda_passiva": 0.0}
 
 
-def atualizar_config(valor=None, meta=None):
-    payload = {"id": 1, "updated_at": datetime.now().isoformat()}
+def atualizar_config(user_id: str, valor=None, meta=None):
+    payload = {"user_id": user_id, "updated_at": datetime.now().isoformat()}
     if valor is not None:
         payload["valor_disponivel"] = float(valor)
     if meta is not None:
@@ -270,51 +421,55 @@ def atualizar_config(valor=None, meta=None):
 
 
 @st.cache_data(ttl=15, show_spinner=False)
-def carregar_aportes() -> pd.DataFrame:
+def carregar_aportes(user_id: str) -> pd.DataFrame:
     try:
-        resp = supabase.table("aportes").select("*").order("data", desc=True).execute()
+        resp = (
+            supabase.table("aportes").select("*")
+            .eq("user_id", user_id).order("data", desc=True).execute()
+        )
         return pd.DataFrame(resp.data) if resp.data else pd.DataFrame()
     except Exception:
         return pd.DataFrame()
 
 
-def registrar_aporte(ticker, tipo, qtd, preco, data_):
-    supabase.table("aportes").insert(
-        {
-            "ticker": ticker,
-            "tipo": tipo,
-            "quantidade": int(qtd),
-            "preco": float(preco),
-            "total": float(qtd) * float(preco),
-            "data": str(data_),
-        }
-    ).execute()
+def registrar_aporte(ticker, tipo, qtd, preco, data_, user_id):
+    supabase.table("aportes").insert({
+        "ticker": ticker,
+        "tipo": tipo,
+        "quantidade": int(qtd),
+        "preco": float(preco),
+        "total": float(qtd) * float(preco),
+        "data": str(data_),
+        "user_id": user_id,
+    }).execute()
     carregar_aportes.clear()
 
 
 @st.cache_data(ttl=15, show_spinner=False)
-def carregar_watchlist() -> pd.DataFrame:
+def carregar_watchlist(user_id: str) -> pd.DataFrame:
     try:
-        resp = supabase.table("watchlist").select("*").order("ticker").execute()
+        resp = (
+            supabase.table("watchlist").select("*")
+            .eq("user_id", user_id).order("ticker").execute()
+        )
         return pd.DataFrame(resp.data) if resp.data else pd.DataFrame()
     except Exception:
         return pd.DataFrame()
 
 
-def salvar_watchlist(ticker, tipo, preco_alvo, obs):
-    supabase.table("watchlist").insert(
-        {
-            "ticker": ticker,
-            "tipo": tipo,
-            "preco_alvo": float(preco_alvo),
-            "observacao": obs,
-        }
-    ).execute()
+def salvar_watchlist(ticker, tipo, preco_alvo, obs, user_id):
+    supabase.table("watchlist").insert({
+        "ticker": ticker,
+        "tipo": tipo,
+        "preco_alvo": float(preco_alvo),
+        "observacao": obs,
+        "user_id": user_id,
+    }).execute()
     carregar_watchlist.clear()
 
 
-def deletar_watchlist(id_):
-    supabase.table("watchlist").delete().eq("id", id_).execute()
+def deletar_watchlist(id_, user_id):
+    supabase.table("watchlist").delete().eq("id", id_).eq("user_id", user_id).execute()
     carregar_watchlist.clear()
 
 
@@ -325,7 +480,16 @@ def enriquecer(df: pd.DataFrame, tipo: str = "acao") -> pd.DataFrame:
     if df.empty:
         return df
     df = df.copy()
-    df["cotacao_atual"] = df["ticker"].apply(get_cotacao)
+    infos = [get_ativo_info(t, tipo) for t in df["ticker"]]
+
+    df["cotacao_atual"] = [i.cotacao for i in infos]
+    df["dy_12m_%"] = [i.dy_12m * 100 for i in infos]
+    df["dividendo_anual"] = [i.dividendo_anual for i in infos]
+    df["preco_teto"] = [i.preco_teto for i in infos]
+    df["margem_bazin_%"] = [i.margem for i in infos]
+    df["status_bazin"] = [i.status for i in infos]
+    df["status_key"] = [i.status_key for i in infos]
+
     df["valor_investido"] = df["quantidade"] * df["preco_medio"]
     df["valor_atual"] = df["quantidade"] * df["cotacao_atual"]
     df["lucro_prejuizo"] = df["valor_atual"] - df["valor_investido"]
@@ -334,14 +498,7 @@ def enriquecer(df: pd.DataFrame, tipo: str = "acao") -> pd.DataFrame:
         (df["valor_atual"] / df["valor_investido"] - 1) * 100,
         0.0,
     )
-    df["dy_12m_%"] = df["ticker"].apply(lambda t: calcular_dy_12m(t, tipo) * 100)
-    # Preço teto de Bazin: preço = dividendo_anual / 0.06
-    df["preco_teto"] = df.apply(
-        lambda r: (r["cotacao_atual"] * r["dy_12m_%"] / 100) / 0.06
-        if r["cotacao_atual"] > 0 else 0.0,
-        axis=1,
-    )
-    df["abaixo_teto"] = df["cotacao_atual"] <= df["preco_teto"]
+    df["renda_mensal_est"] = df["valor_atual"] * df["dy_12m_%"] / 100 / 12
     return df
 
 
@@ -357,31 +514,38 @@ def projetar(valor_inicial, dy_anual, meses, aporte_mensal, reinvestir=True):
         patrimonio += div if reinvestir else 0
         patrimonio += aporte_mensal
         inv_total += aporte_mensal
-        regs.append(
-            {
-                "Mês": m,
-                "Dividendos do mês": round(div, 2),
-                "Dividendos acumulados": round(div_acum, 2),
-                "Patrimônio": round(patrimonio, 2),
-                "Total investido": round(inv_total, 2),
-            }
-        )
+        regs.append({
+            "Mês": m,
+            "Dividendos do mês": round(div, 2),
+            "Dividendos acumulados": round(div_acum, 2),
+            "Patrimônio": round(patrimonio, 2),
+            "Total investido": round(inv_total, 2),
+        })
     return pd.DataFrame(regs)
 
 
+def dy_medio_carteira(df_a: pd.DataFrame, df_f: pd.DataFrame) -> float:
+    pesos, dys = [], []
+    for df in (df_a, df_f):
+        if not df.empty:
+            pesos.extend(df["valor_atual"].tolist())
+            dys.extend(df["dy_12m_%"].tolist())
+    if not pesos or sum(pesos) == 0:
+        return 0.0
+    return float(np.average(dys, weights=pesos))
+
+
 # ══════════════════════════════════════════════════════════════════════
-# COMPONENTES DE UI
+# UI HELPERS
 # ══════════════════════════════════════════════════════════════════════
 def metric_card(label, value, delta=None, delta_type="neutral"):
     delta_html = f'<div class="delta {delta_type}">{delta}</div>' if delta else ""
     st.markdown(
-        f"""
-        <div class="metric-card">
+        f"""<div class="metric-card">
             <div class="label">{label}</div>
             <div class="value">{value}</div>
             {delta_html}
-        </div>
-        """,
+        </div>""",
         unsafe_allow_html=True,
     )
 
@@ -390,36 +554,50 @@ def section(title):
     st.markdown(f'<div class="section-title">{title}</div>', unsafe_allow_html=True)
 
 
-def pill(tipo):
-    cls = "acao" if tipo == "Ação" else "fii"
-    return f'<span class="pill {cls}">{tipo}</span>'
-
-
 # ══════════════════════════════════════════════════════════════════════
 # SIDEBAR
 # ══════════════════════════════════════════════════════════════════════
 with st.sidebar:
+    # ─── Usuário logado ───────────────────────────────────────────────
     st.markdown(
-        """
-        <div style="text-align:center; padding: 8px 0 20px 0;">
-            <div style="font-size: 40px;">💎</div>
-            <div style="font-size: 18px; font-weight: 800; color: #00E5A0; letter-spacing: 0.5px;">
-                GESTOR PREMIUM
+        f"""
+        <div style="background: rgba(0,229,160,0.06); border: 1px solid rgba(0,229,160,0.15);
+                    border-radius: 12px; padding: 10px 14px; margin-bottom: 12px;">
+            <div style="color:#7A8699; font-size:10px; font-weight:700; letter-spacing:1px;">
+                LOGADO COMO
             </div>
-            <div style="font-size: 11px; color: #7A8699; letter-spacing: 1px;">
-                B3 · AÇÕES & FIIs
+            <div style="color:#E6EDF7; font-size:13px; font-weight:700;
+                        margin-top:3px; overflow:hidden; text-overflow:ellipsis;">
+                {USER_EMAIL}
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+    if st.button("🚪 Sair", use_container_width=True, key="btn_logout"):
+        fazer_logout()
 
-    cfg = carregar_config()
+    st.markdown("---")
+
+    # ─── Logo ──────────────────────────────────────────────────────────
+    st.markdown(
+        """<div style="text-align:center; padding: 8px 0 20px 0;">
+            <div style="font-size: 40px;">💎</div>
+            <div style="font-size: 18px; font-weight: 800; color: #00E5A0; letter-spacing: 0.5px;">
+                GESTOR PREMIUM
+            </div>
+            <div style="font-size: 11px; color: #7A8699; letter-spacing: 1px;">
+                B3 · BAZIN · TEMPO REAL
+            </div>
+        </div>""",
+        unsafe_allow_html=True,
+    )
+
+    cfg = carregar_config(USER_ID)
 
     st.markdown("### 💰 Valor disponível")
     st.markdown(
-        f"""
-        <div style="background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 100%);
+        f"""<div style="background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 100%);
                     padding: 16px; border-radius: 14px; text-align: center;
                     box-shadow: 0 8px 24px rgba(0, 229, 160, 0.2); margin-bottom: 12px;">
             <div style="color: #060B14; font-size: 12px; font-weight: 700; opacity: 0.75;">
@@ -428,8 +606,7 @@ with st.sidebar:
             <div style="color: #060B14; font-size: 26px; font-weight: 900; margin-top: 4px;">
                 R$ {cfg.get('valor_disponivel', 0):,.2f}
             </div>
-        </div>
-        """,
+        </div>""",
         unsafe_allow_html=True,
     )
 
@@ -440,9 +617,10 @@ with st.sidebar:
         step=100.0,
         format="%.2f",
         label_visibility="collapsed",
+        key="input_saldo",
     )
     if st.button("💾 Salvar saldo", use_container_width=True):
-        atualizar_config(valor=novo_valor)
+        atualizar_config(USER_ID, valor=novo_valor)
         st.success("Saldo atualizado!")
         st.rerun()
 
@@ -455,40 +633,119 @@ with st.sidebar:
 
 
 # ══════════════════════════════════════════════════════════════════════
-# HERO HEADER
+# HERO
 # ══════════════════════════════════════════════════════════════════════
 st.markdown(
-    """
-    <div class="hero">
+    """<div class="hero">
         <div>
             <h1>💎 Painel de Investimentos</h1>
-            <p>Ações · FIIs · Dividendos · Projeções em tempo real</p>
+            <p>Cotações em tempo real · Preço Teto de Bazin · Projeções com reinvestimento</p>
         </div>
         <div class="badge">● MERCADO ATIVO</div>
-    </div>
-    """,
+    </div>""",
     unsafe_allow_html=True,
 )
 
 # ══════════════════════════════════════════════════════════════════════
 # ABAS
 # ══════════════════════════════════════════════════════════════════════
-tabs = st.tabs(
-    [
-        "📊 Dashboard",
-        "➕ Cadastrar",
-        "✏️ Gerenciar",
-        "📈 Projeções",
-        "🎯 Rebalancear",
-        "👁️ Watchlist",
-        "📜 Aportes",
-    ]
-)
+tabs = st.tabs([
+    "🎯 Radar Bazin",
+    "📊 Dashboard",
+    "➕ Cadastrar",
+    "✏️ Gerenciar",
+    "📈 Projeções",
+    "🎯 Rebalancear",
+    "👁️ Watchlist",
+    "📜 Aportes",
+])
 
-# ── ABA: DASHBOARD ─────────────────────────────────────────────────────
+# ── ABA 0: RADAR BAZIN ─────────────────────────────────────────────────
 with tabs[0]:
-    df_acoes = enriquecer(carregar_ativos("acoes"), "acao")
-    df_fiis = enriquecer(carregar_ativos("fiis"), "fii")
+    section("🎯 Radar Bazin — Onde está a oportunidade?")
+
+    df_a = carregar_ativos("acoes", USER_ID)
+    df_f = carregar_ativos("fiis", USER_ID)
+
+    with st.spinner("Consultando cotações e histórico de dividendos..."):
+        df_a_e = enriquecer(df_a, "acao")
+        df_f_e = enriquecer(df_f, "fii")
+
+    if df_a_e.empty and df_f_e.empty:
+        st.info("Cadastre ativos para o radar começar a funcionar.")
+    else:
+        df_radar = pd.concat(
+            [df_a_e.assign(classe="Ação"), df_f_e.assign(classe="FII")],
+            ignore_index=True,
+        ).sort_values("margem_bazin_%", ascending=False)
+
+        forte = (df_radar["status_key"] == "forte").sum()
+        bom = (df_radar["status_key"] == "bom").sum()
+        proximo = (df_radar["status_key"] == "proximo").sum()
+        caro = (df_radar["status_key"] == "caro").sum()
+
+        c1, c2, c3, c4 = st.columns(4)
+        with c1: metric_card("🟢 Compra forte", str(forte), "≤ 85% do teto", "up")
+        with c2: metric_card("🟢 Bom momento", str(bom), "≤ teto", "up")
+        with c3: metric_card("🟡 Próximo do teto", str(proximo), "≤ 110% do teto", "neutral")
+        with c4: metric_card("🔴 Acima do teto", str(caro), "> 110% do teto", "down")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        oportunidades = df_radar[df_radar["status_key"].isin(["forte", "bom"])]
+        if not oportunidades.empty:
+            nomes = ", ".join(oportunidades["ticker"].tolist())
+            st.success(f"✨ **{len(oportunidades)} ativo(s) em zona de compra**: {nomes}")
+
+        cols_show = ["ticker", "classe", "cotacao_atual", "preco_teto",
+                     "margem_bazin_%", "dy_12m_%", "status_bazin"]
+        st.dataframe(
+            df_radar[cols_show]
+            .rename(columns={
+                "ticker": "Ticker", "classe": "Classe",
+                "cotacao_atual": "Cotação", "preco_teto": "Teto Bazin",
+                "margem_bazin_%": "Margem vs Teto", "dy_12m_%": "DY 12m",
+                "status_bazin": "Status",
+            })
+            .style.format({
+                "Cotação": "R$ {:.2f}",
+                "Teto Bazin": "R$ {:.2f}",
+                "Margem vs Teto": "{:+.1f}%",
+                "DY 12m": "{:.2f}%",
+            }),
+            use_container_width=True,
+            hide_index=True,
+        )
+
+        df_plot = df_radar[df_radar["preco_teto"] > 0].copy()
+        if not df_plot.empty:
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=df_plot["ticker"], y=df_plot["cotacao_atual"],
+                name="Cotação atual", marker_color="#00A8E8",
+                text=df_plot["cotacao_atual"].round(2), textposition="outside",
+            ))
+            fig.add_trace(go.Scatter(
+                x=df_plot["ticker"], y=df_plot["preco_teto"],
+                name="Preço Teto Bazin", mode="markers+lines",
+                marker=dict(color="#00E5A0", size=12, symbol="diamond"),
+                line=dict(color="#00E5A0", width=2, dash="dot"),
+            ))
+            fig.update_layout(
+                title="Cotação Atual vs Preço Teto de Bazin",
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#E6EDF7"), height=420,
+                yaxis=dict(gridcolor="rgba(255,255,255,0.05)"),
+                legend=dict(orientation="h", y=1.1),
+                hovermode="x unified",
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+
+# ── ABA 1: DASHBOARD ───────────────────────────────────────────────────
+with tabs[1]:
+    df_acoes = enriquecer(carregar_ativos("acoes", USER_ID), "acao")
+    df_fiis = enriquecer(carregar_ativos("fiis", USER_ID), "fii")
 
     total_geral = (
         (df_acoes["valor_atual"].sum() if not df_acoes.empty else 0)
@@ -501,35 +758,41 @@ with tabs[0]:
     lucro = total_geral - investido
     rent = (lucro / investido * 100) if investido > 0 else 0
 
-    # Estimativa de renda passiva (média DY * patrimônio)
-    dys = []
-    if not df_acoes.empty:
-        dys += df_acoes["dy_12m_%"].tolist()
-    if not df_fiis.empty:
-        dys += df_fiis["dy_12m_%"].tolist()
-    dy_medio = np.mean([d for d in dys if d > 0]) if any(d > 0 for d in dys) else 0
-    renda_passiva_mensal = (total_geral * dy_medio / 100) / 12
+    renda_mensal = (
+        (df_acoes["renda_mensal_est"].sum() if not df_acoes.empty else 0)
+        + (df_fiis["renda_mensal_est"].sum() if not df_fiis.empty else 0)
+    )
+    dy_medio = dy_medio_carteira(df_acoes, df_fiis)
+
+    df_todos = pd.concat(
+        [df_acoes.assign(classe="Ação"), df_fiis.assign(classe="FII")],
+        ignore_index=True,
+    ) if (not df_acoes.empty or not df_fiis.empty) else pd.DataFrame()
+
+    if not df_todos.empty:
+        fortes = df_todos[df_todos["status_key"] == "forte"]
+        bons = df_todos[df_todos["status_key"] == "bom"]
+        if not fortes.empty:
+            st.success(
+                f"🎯 **{len(fortes)} ativo(s) com COMPRA FORTE**: "
+                f"{', '.join(fortes['ticker'].tolist())}"
+            )
+        if not bons.empty:
+            st.info(
+                f"✨ **{len(bons)} ativo(s) em BOM MOMENTO**: "
+                f"{', '.join(bons['ticker'].tolist())}"
+            )
 
     c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        metric_card("Patrimônio Total", f"R$ {total_geral:,.2f}")
-    with c2:
-        metric_card("Total Investido", f"R$ {investido:,.2f}")
+    with c1: metric_card("Patrimônio Total", f"R$ {total_geral:,.2f}")
+    with c2: metric_card("Total Investido", f"R$ {investido:,.2f}")
     with c3:
         sign = "+" if lucro >= 0 else ""
-        metric_card(
-            "Lucro / Prejuízo",
-            f"R$ {lucro:,.2f}",
-            f"{sign}{rent:.2f}%",
-            "up" if lucro >= 0 else "down",
-        )
+        metric_card("Lucro / Prejuízo", f"R$ {lucro:,.2f}",
+                    f"{sign}{rent:.2f}%", "up" if lucro >= 0 else "down")
     with c4:
-        metric_card(
-            "Renda Passiva Est.",
-            f"R$ {renda_passiva_mensal:,.2f}/mês",
-            f"DY médio {dy_medio:.2f}%",
-            "neutral",
-        )
+        metric_card("Renda Passiva Est.", f"R$ {renda_mensal:,.2f}/mês",
+                    f"DY médio {dy_medio:.2f}%", "neutral")
 
     st.markdown("<br>", unsafe_allow_html=True)
     col_left, col_right = st.columns([1.2, 1])
@@ -541,104 +804,59 @@ with tabs[0]:
             dados.append({"Ativo": r["ticker"], "Valor": r["valor_atual"], "Tipo": "Ação"})
         for _, r in df_fiis.iterrows():
             dados.append({"Ativo": r["ticker"], "Valor": r["valor_atual"], "Tipo": "FII"})
-
         if dados:
-            fig = px.pie(
-                pd.DataFrame(dados),
-                names="Ativo",
-                values="Valor",
-                hole=0.55,
-                color="Tipo",
-                color_discrete_map={"Ação": "#00A8E8", "FII": "#00E5A0"},
-            )
+            fig = px.pie(pd.DataFrame(dados), names="Ativo", values="Valor",
+                         hole=0.55, color="Tipo",
+                         color_discrete_map={"Ação": "#00A8E8", "FII": "#00E5A0"})
             fig.update_traces(textposition="outside", textinfo="percent+label")
             fig.update_layout(
-                showlegend=True,
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#E6EDF7"),
-                margin=dict(t=10, b=10, l=10, r=10),
-                height=400,
+                showlegend=True, paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#E6EDF7"),
+                margin=dict(t=10, b=10, l=10, r=10), height=400,
             )
             st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("Cadastre ativos para visualizar.")
 
     with col_right:
-        section("📊 Comparativo Ações vs FIIs")
+        section("📊 Ações vs FIIs")
         tot_a = df_acoes["valor_atual"].sum() if not df_acoes.empty else 0
         tot_f = df_fiis["valor_atual"].sum() if not df_fiis.empty else 0
         if tot_a + tot_f > 0:
-            df_comp = pd.DataFrame(
-                {"Classe": ["Ações", "FIIs"], "Valor": [tot_a, tot_f]}
-            )
-            fig = px.bar(
-                df_comp,
-                x="Classe",
-                y="Valor",
-                color="Classe",
-                text_auto=".2s",
-                color_discrete_map={"Ações": "#00A8E8", "FIIs": "#00E5A0"},
-            )
+            df_comp = pd.DataFrame({"Classe": ["Ações", "FIIs"], "Valor": [tot_a, tot_f]})
+            fig = px.bar(df_comp, x="Classe", y="Valor", color="Classe",
+                         text_auto=".2s",
+                         color_discrete_map={"Ações": "#00A8E8", "FIIs": "#00E5A0"})
             fig.update_traces(textposition="outside")
             fig.update_layout(
-                showlegend=False,
-                paper_bgcolor="rgba(0,0,0,0)",
-                plot_bgcolor="rgba(0,0,0,0)",
-                font=dict(color="#E6EDF7"),
+                showlegend=False, paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)", font=dict(color="#E6EDF7"),
                 yaxis=dict(gridcolor="rgba(255,255,255,0.05)"),
-                height=400,
-                margin=dict(t=10, b=10, l=10, r=10),
+                height=400, margin=dict(t=10, b=10, l=10, r=10),
             )
             st.plotly_chart(fig, use_container_width=True)
 
-    section("📋 Ações")
-    if df_acoes.empty:
-        st.info("Nenhuma ação cadastrada.")
-    else:
+    for titulo, df_ in [("📋 Ações", df_acoes), ("🏢 Fundos Imobiliários", df_fiis)]:
+        section(titulo)
+        if df_.empty:
+            st.info("Nenhum cadastrado.")
+            continue
         cols = ["ticker", "quantidade", "preco_medio", "cotacao_atual",
-                "valor_atual", "rentabilidade_%", "dy_12m_%", "preco_teto"]
+                "preco_teto", "margem_bazin_%", "status_bazin",
+                "valor_atual", "rentabilidade_%", "dy_12m_%"]
         st.dataframe(
-            df_acoes[cols].style.format({
-                "preco_medio": "R$ {:.2f}",
-                "cotacao_atual": "R$ {:.2f}",
-                "valor_atual": "R$ {:.2f}",
-                "rentabilidade_%": "{:+.2f}%",
-                "dy_12m_%": "{:.2f}%",
-                "preco_teto": "R$ {:.2f}",
-            }).applymap(
-                lambda v: "color: #00E5A0" if isinstance(v, (int, float)) and v > 0
-                else ("color: #FF5C7A" if isinstance(v, (int, float)) and v < 0 else ""),
-                subset=["rentabilidade_%"],
-            ),
-            use_container_width=True,
-            hide_index=True,
+            df_[cols].rename(columns={
+                "ticker": "Ticker", "quantidade": "Qtd", "preco_medio": "PM",
+                "cotacao_atual": "Cotação", "preco_teto": "Teto Bazin",
+                "margem_bazin_%": "Margem", "status_bazin": "Status",
+                "valor_atual": "Valor Atual", "rentabilidade_%": "Rent.",
+                "dy_12m_%": "DY 12m",
+            }).style.format({
+                "PM": "R$ {:.2f}", "Cotação": "R$ {:.2f}", "Teto Bazin": "R$ {:.2f}",
+                "Margem": "{:+.1f}%", "Valor Atual": "R$ {:.2f}",
+                "Rent.": "{:+.2f}%", "DY 12m": "{:.2f}%",
+            }),
+            use_container_width=True, hide_index=True,
         )
 
-    section("🏢 Fundos Imobiliários")
-    if df_fiis.empty:
-        st.info("Nenhum FII cadastrado.")
-    else:
-        cols = ["ticker", "quantidade", "preco_medio", "cotacao_atual",
-                "valor_atual", "rentabilidade_%", "dy_12m_%", "preco_teto"]
-        st.dataframe(
-            df_fiis[cols].style.format({
-                "preco_medio": "R$ {:.2f}",
-                "cotacao_atual": "R$ {:.2f}",
-                "valor_atual": "R$ {:.2f}",
-                "rentabilidade_%": "{:+.2f}%",
-                "dy_12m_%": "{:.2f}%",
-                "preco_teto": "R$ {:.2f}",
-            }).applymap(
-                lambda v: "color: #00E5A0" if isinstance(v, (int, float)) and v > 0
-                else ("color: #FF5C7A" if isinstance(v, (int, float)) and v < 0 else ""),
-                subset=["rentabilidade_%"],
-            ),
-            use_container_width=True,
-            hide_index=True,
-        )
-
-    # Exportação
     section("📥 Exportar Carteira")
     e1, e2 = st.columns(2)
     if not df_acoes.empty or not df_fiis.empty:
@@ -648,35 +866,84 @@ with tabs[0]:
         )
         csv = df_export.to_csv(index=False).encode("utf-8")
         buf = io.BytesIO()
-        with pd.ExcelWriter(buf, engine="xlsxwriter") as writer:
-            df_export.to_excel(writer, sheet_name="Carteira", index=False)
-        e1.download_button(
-            "⬇️ Baixar CSV",
-            csv,
-            f"carteira_{date.today()}.csv",
-            "text/csv",
-            use_container_width=True,
-        )
-        e2.download_button(
-            "⬇️ Baixar Excel",
-            buf.getvalue(),
-            f"carteira_{date.today()}.xlsx",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True,
-        )
+        with pd.ExcelWriter(buf, engine="xlsxwriter") as w:
+            df_export.to_excel(w, sheet_name="Carteira", index=False)
+        e1.download_button("⬇️ Baixar CSV", csv, f"carteira_{date.today()}.csv",
+                           "text/csv", use_container_width=True)
+        e2.download_button("⬇️ Baixar Excel", buf.getvalue(),
+                           f"carteira_{date.today()}.xlsx",
+                           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                           use_container_width=True)
 
 
-# ── ABA: CADASTRAR ─────────────────────────────────────────────────────
-with tabs[1]:
+# ── ABA 2: CADASTRAR ───────────────────────────────────────────────────
+with tabs[2]:
     section("➕ Novo Ativo")
-    with st.form("form_novo", clear_on_submit=True):
+
+    c1, c2, c3 = st.columns([1, 1, 2])
+    with c1:
+        tipo = st.selectbox("Tipo", ["Ação", "FII"], key="cad_tipo")
+    with c2:
+        ticker = st.text_input(
+            "Ticker", placeholder="PETR4 / MXRF11", key="cad_ticker",
+            help="Digite e pressione Enter para buscar cotação e Bazin.",
+        ).upper().strip()
+    with c3:
+        st.markdown("<div style='height: 28px'></div>", unsafe_allow_html=True)
+        buscar_btn = st.button("🔍 Buscar cotação + Bazin", use_container_width=True)
+
+    ticker_mudou = ticker and st.session_state.get("cot_ticker") != ticker
+    if (buscar_btn or ticker_mudou) and ticker:
+        with st.spinner(f"Analisando {ticker}..."):
+            info = get_ativo_info(ticker, "acao" if tipo == "Ação" else "fii")
+        st.session_state["cot_info"] = info
+        st.session_state["cot_ticker"] = ticker
+
+    info_cad = st.session_state.get("cot_info")
+
+    if info_cad and st.session_state.get("cot_ticker") == ticker:
+        st.markdown(
+            f"""<div class="bazin-card">
+                <div class="cell">
+                    <div class="lbl">TICKER</div>
+                    <div class="val">{info_cad.ticker}</div>
+                </div>
+                <div class="cell">
+                    <div class="lbl">COTAÇÃO ATUAL</div>
+                    <div class="val" style="color:#00A8E8;">R$ {info_cad.cotacao:.2f}</div>
+                </div>
+                <div class="cell">
+                    <div class="lbl">PREÇO TETO BAZIN</div>
+                    <div class="val" style="color:#00E5A0;">R$ {info_cad.preco_teto:.2f}</div>
+                </div>
+                <div class="cell">
+                    <div class="lbl">MARGEM VS TETO</div>
+                    <div class="val" style="color:{info_cad.cor};">{info_cad.margem:+.1f}%</div>
+                </div>
+                <div>{status_pill_html(info_cad)}</div>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+        if info_cad.status_key in ("forte", "bom"):
+            st.success("✅ Bom momento de compra segundo o método Bazin.")
+        elif info_cad.status_key == "proximo":
+            st.warning("⚠️ Próximo do teto. Avalie a margem de segurança.")
+        elif info_cad.status_key == "caro":
+            st.error("🚫 Acima do preço teto. Considere aguardar correção.")
+        else:
+            st.info("ℹ️ Sem histórico de dividendos suficiente para calcular o teto.")
+
+    with st.form("form_novo"):
         c1, c2, c3 = st.columns(3)
         with c1:
-            tipo = st.selectbox("Tipo", ["Ação", "FII"])
-            ticker = st.text_input("Ticker", placeholder="PETR4 / MXRF11").upper().strip()
-        with c2:
             quantidade = st.number_input("Quantidade", min_value=1, step=1, value=100)
-            preco = st.number_input("Preço médio (R$)", min_value=0.01, step=0.01, format="%.2f")
+        with c2:
+            cot_val = float(info_cad.cotacao) if info_cad and info_cad.cotacao > 0 else 10.0
+            usar_auto = st.checkbox("🎯 Usar cotação do mercado", value=(cot_val > 10.0))
+            preco_manual = st.number_input(
+                "Preço (R$)", min_value=0.01, step=0.01, format="%.2f",
+                value=cot_val, disabled=usar_auto,
+            )
         with c3:
             data_compra = st.date_input("Data da compra", value=date.today())
             registrar = st.checkbox("Registrar no histórico de aportes", value=True)
@@ -684,43 +951,103 @@ with tabs[1]:
         if st.form_submit_button("💾 Cadastrar ativo", use_container_width=True):
             if not ticker:
                 st.error("Informe o ticker.")
+            elif usar_auto and cot_val <= 0:
+                st.error("Sem cotação disponível. Desmarque 'Usar cotação do mercado'.")
             else:
+                preco_final = cot_val if usar_auto else float(preco_manual)
                 tabela = "acoes" if tipo == "Ação" else "fiis"
-                salvar_ativo(tabela, {
-                    "ticker": ticker,
-                    "quantidade": int(quantidade),
-                    "preco_medio": float(preco),
-                    "data_compra": str(data_compra),
-                })
-                if registrar:
-                    registrar_aporte(ticker, tipo, quantidade, preco, data_compra)
-                st.success(f"✅ {tipo} {ticker} cadastrado!")
-                st.rerun()
+                try:
+                    salvar_ativo(
+                        tabela,
+                        {
+                            "ticker": ticker,
+                            "quantidade": int(quantidade),
+                            "preco_medio": preco_final,
+                            "data_compra": str(data_compra),
+                        },
+                        USER_ID,
+                    )
+                    if registrar:
+                        registrar_aporte(ticker, tipo, quantidade, preco_final,
+                                         data_compra, USER_ID)
+                    origem = "mercado" if usar_auto else "manual"
+                    st.success(
+                        f"✅ {tipo} **{ticker}** cadastrado — "
+                        f"{quantidade} un. × R$ {preco_final:.2f} ({origem})"
+                    )
+                    for k in ("cot_info", "cot_ticker"):
+                        st.session_state.pop(k, None)
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Erro ao salvar: {e}")
 
 
-# ── ABA: GERENCIAR ─────────────────────────────────────────────────────
-with tabs[2]:
+# ── ABA 3: GERENCIAR ───────────────────────────────────────────────────
+with tabs[3]:
     section("✏️ Editar / Excluir")
-    tipo_edit = st.radio("Tabela", ["Ações", "FIIs"], horizontal=True, label_visibility="collapsed")
+    tipo_edit = st.radio(
+        "Tabela", ["Ações", "FIIs"], horizontal=True, label_visibility="collapsed"
+    )
     tabela = "acoes" if tipo_edit == "Ações" else "fiis"
-    df_edit = carregar_ativos(tabela)
+    tipo_key = "acao" if tipo_edit == "Ações" else "fii"
+    df_edit = carregar_ativos(tabela, USER_ID)
 
     if df_edit.empty:
         st.info("Nada para editar.")
     else:
-        opcoes = {f"{r['ticker']} — {r['quantidade']} un.": r["id"] for _, r in df_edit.iterrows()}
+        opcoes = {
+            f"{r['ticker']} — {r['quantidade']} un.": r["id"]
+            for _, r in df_edit.iterrows()
+        }
         sel = st.selectbox("Selecione o ativo", list(opcoes.keys()))
         id_sel = opcoes[sel]
         reg = df_edit[df_edit["id"] == id_sel].iloc[0]
 
+        with st.spinner("Consultando mercado..."):
+            info_edit = get_ativo_info(reg["ticker"], tipo_key)
+
+        st.markdown(
+            f"""<div class="bazin-card">
+                <div class="cell">
+                    <div class="lbl">PREÇO MÉDIO PAGO</div>
+                    <div class="val">R$ {reg['preco_medio']:.2f}</div>
+                </div>
+                <div class="cell">
+                    <div class="lbl">COTAÇÃO ATUAL</div>
+                    <div class="val" style="color:#00A8E8;">R$ {info_edit.cotacao:.2f}</div>
+                </div>
+                <div class="cell">
+                    <div class="lbl">TETO BAZIN</div>
+                    <div class="val" style="color:#00E5A0;">R$ {info_edit.preco_teto:.2f}</div>
+                </div>
+                <div class="cell">
+                    <div class="lbl">MARGEM VS TETO</div>
+                    <div class="val" style="color:{info_edit.cor};">{info_edit.margem:+.1f}%</div>
+                </div>
+                <div>{status_pill_html(info_edit)}</div>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+
         with st.form("form_edit"):
             c1, c2 = st.columns(2)
             with c1:
-                nova_qtd = st.number_input("Quantidade", min_value=1, value=int(reg["quantidade"]))
+                nova_qtd = st.number_input(
+                    "Quantidade", min_value=1, value=int(reg["quantidade"])
+                )
                 novo_tk = st.text_input("Ticker", value=reg["ticker"])
             with c2:
+                usar_mkt = st.checkbox(
+                    f"🎯 Usar cotação atual (R$ {info_edit.cotacao:.2f})",
+                    value=False,
+                    key=f"usar_mkt_{id_sel}",
+                )
                 novo_preco = st.number_input(
-                    "Preço médio (R$)", min_value=0.01, value=float(reg["preco_medio"]), format="%.2f"
+                    "Preço médio (R$)",
+                    min_value=0.01,
+                    value=float(info_edit.cotacao if usar_mkt else reg["preco_medio"]),
+                    format="%.2f",
+                    disabled=usar_mkt,
                 )
                 nova_data = st.date_input(
                     "Data da compra",
@@ -728,46 +1055,70 @@ with tabs[2]:
                 )
             col_a, col_b = st.columns(2)
             if col_a.form_submit_button("✏️ Atualizar", use_container_width=True):
-                atualizar_ativo(tabela, id_sel, {
-                    "ticker": novo_tk.upper().strip(),
-                    "quantidade": int(nova_qtd),
-                    "preco_medio": float(novo_preco),
-                    "data_compra": str(nova_data),
-                })
+                atualizar_ativo(
+                    tabela,
+                    id_sel,
+                    {
+                        "ticker": novo_tk.upper().strip(),
+                        "quantidade": int(nova_qtd),
+                        "preco_medio": float(novo_preco),
+                        "data_compra": str(nova_data),
+                    },
+                    USER_ID,
+                )
                 st.success("Atualizado!")
                 st.rerun()
             if col_b.form_submit_button("🗑️ Excluir", use_container_width=True):
-                deletar_ativo(tabela, id_sel)
+                deletar_ativo(tabela, id_sel, USER_ID)
                 st.success("Excluído!")
                 st.rerun()
 
 
-# ── ABA: PROJEÇÕES ────────────────────────────────────────────────────
-with tabs[3]:
+# ── ABA 4: PROJEÇÕES ───────────────────────────────────────────────────
+with tabs[4]:
     section("📈 Projeção de Juros Compostos")
-    cfg = carregar_config()
 
+    df_a_proj = enriquecer(carregar_ativos("acoes", USER_ID), "acao")
+    df_f_proj = enriquecer(carregar_ativos("fiis", USER_ID), "fii")
+
+    dy_carteira = (
+        dy_medio_carteira(df_a_proj, df_f_proj) / 100
+        if not (df_a_proj.empty and df_f_proj.empty)
+        else 0.10
+    )
+    if dy_carteira <= 0:
+        dy_carteira = 0.10
+
+    st.info(
+        f"💡 DY médio ponderado da sua carteira atual: "
+        f"**{dy_carteira * 100:.2f}% a.a.** (usado como base da projeção)"
+    )
+
+    cfg = carregar_config(USER_ID)
     c1, c2 = st.columns(2)
     with c1:
         patrimonio_ini = st.number_input(
-            "Patrimônio inicial (R$)",
-            min_value=0.0,
+            "Patrimônio inicial (R$)", min_value=0.0,
             value=float(cfg.get("valor_disponivel", 0) or 10000),
-            step=1000.0,
-            format="%.2f",
+            step=1000.0, format="%.2f",
         )
-        dy = st.slider("DY anual esperado (%)", 0.0, 25.0, 10.0, 0.25)
+        dy_input = st.slider(
+            "DY anual esperado (%)", 0.0, 25.0,
+            float(dy_carteira * 100), 0.25,
+        )
     with c2:
         meses = st.slider("Horizonte (meses)", 6, 360, 120, 6)
-        aporte = st.number_input("Aporte mensal (R$)", min_value=0.0, value=1000.0, step=100.0)
+        aporte = st.number_input(
+            "Aporte mensal (R$)", min_value=0.0, value=1000.0, step=100.0
+        )
 
     reinvestir = st.checkbox("♻️ Reinvestir dividendos", value=True)
 
     if st.button("🚀 Gerar 3 cenários", use_container_width=True):
         cenarios = {
-            "Pessimista": dy * 0.6 / 100,
-            "Base": dy / 100,
-            "Otimista": dy * 1.4 / 100,
+            "Pessimista": dy_input * 0.6 / 100,
+            "Base": dy_input / 100,
+            "Otimista": dy_input * 1.4 / 100,
         }
         cores = {"Pessimista": "#FF5C7A", "Base": "#00A8E8", "Otimista": "#00E5A0"}
 
@@ -779,72 +1130,78 @@ with tabs[3]:
                 mode="lines", name=nome,
                 line=dict(color=cores[nome], width=3),
             ))
-
         fig.update_layout(
             title="Projeção de Patrimônio — 3 Cenários",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
             font=dict(color="#E6EDF7"),
             xaxis=dict(gridcolor="rgba(255,255,255,0.05)", title="Mês"),
             yaxis=dict(gridcolor="rgba(255,255,255,0.05)", title="R$"),
-            hovermode="x unified",
-            height=480,
+            hovermode="x unified", height=480,
             legend=dict(orientation="h", y=1.05),
         )
         st.plotly_chart(fig, use_container_width=True)
 
-        # Cards de resumo por cenário
         cols = st.columns(3)
         for i, (nome, dy_c) in enumerate(cenarios.items()):
             df_p = projetar(patrimonio_ini, dy_c, meses, aporte, reinvestir)
             final = df_p.iloc[-1]
             with cols[i]:
                 metric_card(
-                    nome,
-                    f"R$ {final['Patrimônio']:,.0f}",
+                    nome, f"R$ {final['Patrimônio']:,.0f}",
                     f"Div. acum.: R$ {final['Dividendos acumulados']:,.0f}",
                     "up" if i == 2 else ("neutral" if i == 1 else "down"),
                 )
 
     section("🎯 Meta de Independência Financeira")
     meta = st.number_input(
-        "Renda passiva mensal desejada (R$)",
-        min_value=0.0,
-        value=float(cfg.get("meta_renda_passiva", 0) or 5000),
-        step=500.0,
+        "Renda passiva mensal desejada (R$)", min_value=0.0,
+        value=float(cfg.get("meta_renda_passiva", 0) or 5000), step=500.0,
     )
     if st.button("💾 Salvar meta", use_container_width=True):
-        atualizar_config(meta=meta)
+        atualizar_config(USER_ID, meta=meta)
         st.success("Meta salva!")
-
-    if meta > 0 and dy > 0:
-        patrimonio_meta = (meta * 12) / (dy / 100)
+    if meta > 0 and dy_input > 0:
+        patrimonio_meta = (meta * 12) / (dy_input / 100)
         st.info(
-            f"📌 Com DY de {dy:.2f}% a.a., você precisa de "
+            f"📌 Com DY de {dy_input:.2f}% a.a., você precisa de "
             f"**R$ {patrimonio_meta:,.2f}** para gerar R$ {meta:,.2f}/mês."
         )
 
 
-# ── ABA: REBALANCEAR ───────────────────────────────────────────────────
-with tabs[4]:
-    section("🎯 Rebalanceamento da Carteira")
-    st.caption("Defina metas de alocação (%) por ativo. O sistema calcula quanto aportar.")
+# ── ABA 5: REBALANCEAR ─────────────────────────────────────────────────
+with tabs[5]:
+    section("🎯 Rebalanceamento Inteligente")
 
-    df_a = carregar_ativos("acoes")
-    df_f = carregar_ativos("fiis")
+    df_a = carregar_ativos("acoes", USER_ID)
+    df_f = carregar_ativos("fiis", USER_ID)
 
     if df_a.empty and df_f.empty:
         st.info("Cadastre ativos primeiro.")
     else:
+        df_a_e = enriquecer(df_a, "acao")
+        df_f_e = enriquecer(df_f, "fii")
+
         valor_aporte = st.number_input(
-            "Valor disponível para aporte (R$)", min_value=0.0, value=1000.0, step=100.0
+            "Valor disponível para aporte (R$)", min_value=0.0,
+            value=1000.0, step=100.0,
+        )
+        priorizar_bazin = st.checkbox(
+            "🎯 Priorizar ativos abaixo do Preço Teto de Bazin", value=True,
         )
 
         todas = []
-        for _, r in df_a.iterrows():
-            todas.append({"id": r["id"], "ticker": r["ticker"], "tipo": "Ação", "tabela": "acoes"})
-        for _, r in df_f.iterrows():
-            todas.append({"id": r["id"], "ticker": r["ticker"], "tipo": "FII", "tabela": "fiis"})
+        for _, r in df_a_e.iterrows():
+            todas.append({
+                "ticker": r["ticker"], "tipo": "Ação", "valor": r["valor_atual"],
+                "status_key": r["status_key"], "margem": r["margem_bazin_%"],
+                "teto": r["preco_teto"],
+            })
+        for _, r in df_f_e.iterrows():
+            todas.append({
+                "ticker": r["ticker"], "tipo": "FII", "valor": r["valor_atual"],
+                "status_key": r["status_key"], "margem": r["margem_bazin_%"],
+                "teto": r["preco_teto"],
+            })
 
         st.markdown("**Defina a meta de alocação (%) para cada ativo:**")
         metas = {}
@@ -862,52 +1219,63 @@ with tabs[4]:
         elif abs(soma_metas - 100) > 0.5:
             st.warning(f"⚠️ Soma das metas = {soma_metas:.1f}%. Ideal: 100%.")
         else:
-            df_a_e = enriquecer(df_a, "acao")
-            df_f_e = enriquecer(df_f, "fii")
-            tot = (
-                (df_a_e["valor_atual"].sum() if not df_a_e.empty else 0)
-                + (df_f_e["valor_atual"].sum() if not df_f_e.empty else 0)
-            )
+            tot = sum(a["valor"] for a in todas)
             novo_tot = tot + valor_aporte
-
             rows = []
             for a in todas:
                 tk = a["ticker"]
-                fonte = df_a_e if a["tipo"] == "Ação" else df_f_e
-                atual = float(fonte[fonte["ticker"] == tk]["valor_atual"].iloc[0])
                 alvo = novo_tot * (metas[tk] / 100)
-                gap = alvo - atual
+                gap = max(alvo - a["valor"], 0)
                 rows.append({
-                    "Ticker": tk,
-                    "Tipo": a["tipo"],
-                    "Atual (R$)": atual,
-                    "% Atual": (atual / tot * 100) if tot > 0 else 0,
+                    "Ticker": tk, "Tipo": a["tipo"],
+                    "Status": "🟢" if a["status_key"] in ("forte", "bom")
+                              else ("🟡" if a["status_key"] == "proximo" else "🔴"),
+                    "Atual (R$)": a["valor"],
+                    "% Atual": (a["valor"] / tot * 100) if tot > 0 else 0,
                     "Meta %": metas[tk],
                     "Alvo (R$)": alvo,
-                    "Aportar (R$)": max(gap, 0),
+                    "Gap (R$)": gap,
+                    "status_key": a["status_key"],
                 })
-            df_reb = pd.DataFrame(rows).sort_values("Aportar (R$)", ascending=False)
+            df_reb = pd.DataFrame(rows)
+
+            if priorizar_bazin:
+                pesos = df_reb["Gap (R$)"].copy()
+                pesos = pesos * np.where(
+                    df_reb["status_key"].isin(["forte", "bom"]), 1.5, 1.0
+                )
+                pesos = pesos * np.where(df_reb["status_key"] == "caro", 0.3, 1.0)
+            else:
+                pesos = df_reb["Gap (R$)"]
+
+            if pesos.sum() > 0:
+                df_reb["Aportar (R$)"] = pesos / pesos.sum() * valor_aporte
+            else:
+                df_reb["Aportar (R$)"] = 0.0
+
+            df_reb = df_reb.sort_values("Aportar (R$)", ascending=False).reset_index(drop=True)
 
             st.dataframe(
-                df_reb.style.format({
-                    "Atual (R$)": "R$ {:,.2f}",
-                    "% Atual": "{:.1f}%",
-                    "Meta %": "{:.1f}%",
-                    "Alvo (R$)": "R$ {:,.2f}",
+                df_reb[["Ticker", "Tipo", "Status", "Atual (R$)", "% Atual",
+                        "Meta %", "Alvo (R$)", "Aportar (R$)"]]
+                .style.format({
+                    "Atual (R$)": "R$ {:,.2f}", "% Atual": "{:.1f}%",
+                    "Meta %": "{:.1f}%", "Alvo (R$)": "R$ {:,.2f}",
                     "Aportar (R$)": "R$ {:,.2f}",
                 }),
-                use_container_width=True,
-                hide_index=True,
+                use_container_width=True, hide_index=True,
             )
 
             fig = go.Figure()
             fig.add_trace(go.Bar(
                 name="% Atual", x=df_reb["Ticker"], y=df_reb["% Atual"],
-                marker_color="#00A8E8", text=df_reb["% Atual"].round(1), textposition="outside",
+                marker_color="#00A8E8", text=df_reb["% Atual"].round(1),
+                textposition="outside",
             ))
             fig.add_trace(go.Bar(
                 name="Meta %", x=df_reb["Ticker"], y=df_reb["Meta %"],
-                marker_color="#00E5A0", text=df_reb["Meta %"].round(1), textposition="outside",
+                marker_color="#00E5A0", text=df_reb["Meta %"].round(1),
+                textposition="outside",
             ))
             fig.update_layout(
                 barmode="group", title="Atual vs Meta",
@@ -919,9 +1287,9 @@ with tabs[4]:
             st.plotly_chart(fig, use_container_width=True)
 
 
-# ── ABA: WATCHLIST ─────────────────────────────────────────────────────
-with tabs[5]:
-    section("👁️ Watchlist — Ativos Monitorados")
+# ── ABA 6: WATCHLIST ───────────────────────────────────────────────────
+with tabs[6]:
+    section("👁️ Watchlist — Distância ao Teto Bazin")
 
     with st.form("form_watch", clear_on_submit=True):
         c1, c2, c3, c4 = st.columns([1, 1, 1, 2])
@@ -930,74 +1298,85 @@ with tabs[5]:
         with c2:
             w_ticker = st.text_input("Ticker").upper().strip()
         with c3:
-            w_preco = st.number_input("Preço alvo (R$)", min_value=0.0, step=0.01, format="%.2f")
+            w_preco = st.number_input(
+                "Preço alvo (R$)", min_value=0.0, step=0.01, format="%.2f"
+            )
         with c4:
             w_obs = st.text_input("Observação")
         if st.form_submit_button("➕ Adicionar", use_container_width=True):
             if w_ticker:
-                salvar_watchlist(w_ticker, w_tipo, w_preco, w_obs)
+                salvar_watchlist(w_ticker, w_tipo, w_preco, w_obs, USER_ID)
                 st.success(f"{w_ticker} adicionado!")
                 st.rerun()
 
-    df_w = carregar_watchlist()
+    df_w = carregar_watchlist(USER_ID)
     if df_w.empty:
         st.info("Watchlist vazia.")
     else:
-        df_w["cotacao_atual"] = df_w["ticker"].apply(get_cotacao)
-        df_w["dist_%"] = np.where(
-            df_w["preco_alvo"] > 0,
-            (df_w["cotacao_atual"] / df_w["preco_alvo"] - 1) * 100,
-            0.0,
-        )
-        df_w["status"] = np.where(
-            df_w["cotacao_atual"] <= df_w["preco_alvo"], "🎯 Alvo atingido!", "⏳ Aguardando"
-        )
+        linhas = []
+        for _, r in df_w.iterrows():
+            info = get_ativo_info(
+                r["ticker"], "acao" if r["tipo"] == "Ação" else "fii"
+            )
+            dist_alvo = (
+                (info.cotacao / r["preco_alvo"] - 1) * 100
+                if r["preco_alvo"] > 0 else 0
+            )
+            linhas.append({
+                "Ticker": r["ticker"], "Tipo": r["tipo"],
+                "Cotação": info.cotacao, "Preço alvo": r["preco_alvo"],
+                "Dist. alvo": dist_alvo, "Teto Bazin": info.preco_teto,
+                "Margem Bazin": info.margem, "Status": info.status,
+                "Obs.": r["observacao"], "id": r["id"],
+            })
+        df_w_show = pd.DataFrame(linhas)
 
         st.dataframe(
-            df_w[["ticker", "tipo", "cotacao_atual", "preco_alvo", "dist_%", "status", "observacao"]]
-            .rename(columns={
-                "ticker": "Ticker", "tipo": "Tipo", "cotacao_atual": "Preço atual",
-                "preco_alvo": "Preço alvo", "dist_%": "Dist. %", "status": "Status",
-                "observacao": "Obs.",
-            })
-            .style.format({
-                "Preço atual": "R$ {:.2f}",
-                "Preço alvo": "R$ {:.2f}",
-                "Dist. %": "{:+.2f}%",
+            df_w_show.drop(columns=["id"]).style.format({
+                "Cotação": "R$ {:.2f}", "Preço alvo": "R$ {:.2f}",
+                "Dist. alvo": "{:+.1f}%", "Teto Bazin": "R$ {:.2f}",
+                "Margem Bazin": "{:+.1f}%",
             }),
-            use_container_width=True,
-            hide_index=True,
+            use_container_width=True, hide_index=True,
         )
 
         del_id = st.selectbox(
             "Excluir da watchlist:",
-            options=df_w["id"].tolist(),
-            format_func=lambda x: df_w[df_w["id"] == x]["ticker"].iloc[0],
+            options=df_w_show["id"].tolist(),
+            format_func=lambda x: df_w_show[df_w_show["id"] == x]["Ticker"].iloc[0],
         )
         if st.button("🗑️ Remover", use_container_width=True):
-            deletar_watchlist(del_id)
+            deletar_watchlist(del_id, USER_ID)
             st.success("Removido!")
             st.rerun()
 
 
-# ── ABA: APORTES ───────────────────────────────────────────────────────
-with tabs[6]:
+# ── ABA 7: APORTES ─────────────────────────────────────────────────────
+with tabs[7]:
     section("📜 Histórico de Aportes")
-    df_ap = carregar_aportes()
+    df_ap = carregar_aportes(USER_ID)
 
     if df_ap.empty:
         st.info("Nenhum aporte registrado.")
     else:
         df_ap["data"] = pd.to_datetime(df_ap["data"])
+        df_ap["cotacao_atual"] = df_ap["ticker"].apply(get_cotacao)
+        df_ap["preco_teto"] = df_ap.apply(
+            lambda r: get_ativo_info(
+                r["ticker"], "acao" if r["tipo"] == "Ação" else "fii"
+            ).preco_teto,
+            axis=1,
+        )
+        df_ap["ganho_%"] = np.where(
+            df_ap["preco"] > 0,
+            (df_ap["cotacao_atual"] / df_ap["preco"] - 1) * 100,
+            0,
+        )
 
         c1, c2, c3 = st.columns(3)
-        with c1:
-            metric_card("Total Aportado", f"R$ {df_ap['total'].sum():,.2f}")
-        with c2:
-            metric_card("Nº de Aportes", str(len(df_ap)))
-        with c3:
-            media = df_ap["total"].mean()
-            metric_card("Aporte Médio", f"R$ {media:,.2f}")
+        with c1: metric_card("Total Aportado", f"R$ {df_ap['total'].sum():,.2f}")
+        with c2: metric_card("Nº de Aportes", str(len(df_ap)))
+        with c3: metric_card("Aporte Médio", f"R$ {df_ap['total'].mean():,.2f}")
 
         section("📈 Evolução dos Aportes")
         df_m = df_ap.copy()
@@ -1019,21 +1398,26 @@ with tabs[6]:
             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
             font=dict(color="#E6EDF7"), height=400,
             yaxis=dict(title="Aporte (R$)", gridcolor="rgba(255,255,255,0.05)"),
-            yaxis2=dict(title="Acumulado (R$)", overlaying="y", side="right", showgrid=False),
-            legend=dict(orientation="h", y=1.1),
-            hovermode="x unified",
+            yaxis2=dict(title="Acumulado (R$)", overlaying="y",
+                        side="right", showgrid=False),
+            legend=dict(orientation="h", y=1.1), hovermode="x unified",
         )
         st.plotly_chart(fig, use_container_width=True)
 
-        section("📋 Todos os aportes")
+        section("📋 Detalhamento")
         st.dataframe(
-            df_ap[["data", "ticker", "tipo", "quantidade", "preco", "total"]]
+            df_ap[["data", "ticker", "tipo", "quantidade", "preco",
+                   "cotacao_atual", "ganho_%", "preco_teto", "total"]]
             .rename(columns={
                 "data": "Data", "ticker": "Ticker", "tipo": "Tipo",
-                "quantidade": "Qtd", "preco": "Preço", "total": "Total",
+                "quantidade": "Qtd", "preco": "Preço pago",
+                "cotacao_atual": "Cotação hoje", "ganho_%": "Variação",
+                "preco_teto": "Teto Bazin", "total": "Total",
             })
-            .style.format({"Preço": "R$ {:.2f}", "Total": "R$ {:.2f}"}),
-            use_container_width=True,
-            hide_index=True,
-            height=400,
+            .style.format({
+                "Preço pago": "R$ {:.2f}", "Cotação hoje": "R$ {:.2f}",
+                "Variação": "{:+.2f}%", "Teto Bazin": "R$ {:.2f}",
+                "Total": "R$ {:.2f}",
+            }),
+            use_container_width=True, hide_index=True, height=400,
         )
