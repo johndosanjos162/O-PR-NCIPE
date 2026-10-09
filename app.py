@@ -502,11 +502,10 @@ def calcular_dy_12m(ticker: str, tipo: str) -> float:
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 💵 RESUMO DE DIVIDENDOS POR COTA (NOVO)
+# 💵 RESUMO DE DIVIDENDOS POR COTA
 # ══════════════════════════════════════════════════════════════════════
 @st.cache_data(ttl=3600, show_spinner=False)
 def get_resumo_dividendos(ticker: str, tipo: str) -> dict:
-    """Retorna resumo dos dividendos por cota dos últimos 12 meses."""
     vazio = {
         "ultimo": 0.0, "media": 0.0, "total_12m": 0.0,
         "n": 0, "data_ultimo": None, "df": pd.DataFrame(),
@@ -540,7 +539,6 @@ def get_resumo_dividendos(ticker: str, tipo: str) -> dict:
 
 
 def div_cota_resumo(ticker: str, tipo: str) -> float:
-    """Atalho: retorna só o dividendo anual por cota (12m)."""
     return get_resumo_dividendos(ticker, tipo)["total_12m"]
 
 
@@ -551,11 +549,6 @@ def render_dividendo_por_cota(
     compacto: bool = False,
     key_prefix: str = "",
 ):
-    """
-    Renderiza o bloco de dividendo pago por cota.
-    - compacto=True: mostra só os 4 cards (usado em abas resumidas)
-    - compacto=False: cards + tabela + gráfico + rodapé (versão completa)
-    """
     res = get_resumo_dividendos(ticker, tipo)
 
     if res["n"] == 0:
@@ -564,7 +557,6 @@ def render_dividendo_por_cota(
 
     dy = (res["total_12m"] / cotacao) if cotacao > 0 else 0.0
 
-    # ─── Cards ───
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         data_str = res["data_ultimo"].strftime("%d/%m/%Y") if res["data_ultimo"] is not None else "—"
@@ -597,17 +589,11 @@ def render_dividendo_por_cota(
                 "neutral",
             )
         else:
-            metric_card(
-                "🎯 DY real 12m",
-                "—",
-                "cotação indisponível",
-                "neutral",
-            )
+            metric_card("🎯 DY real 12m", "—", "cotação indisponível", "neutral")
 
     if compacto:
         return
 
-    # ─── Tabela + Gráfico ───
     st.markdown("<br>", unsafe_allow_html=True)
     col_tabela, col_grafico = st.columns([1, 1.4])
 
@@ -809,6 +795,13 @@ def registrar_aporte(ticker, tipo, qtd, preco, data_, user_id):
     carregar_aportes.clear()
 
 
+# 🆕 EXCLUIR APORTE
+def deletar_aporte(id_: int, user_id: str):
+    """Remove um aporte pelo id (respeitando RLS do usuário)."""
+    supabase.table("aportes").delete().eq("id", id_).eq("user_id", user_id).execute()
+    carregar_aportes.clear()
+
+
 @st.cache_data(ttl=15, show_spinner=False)
 def carregar_watchlist(user_id: str) -> pd.DataFrame:
     try:
@@ -876,8 +869,6 @@ def enriquecer(df: pd.DataFrame, tipo: str = "acao") -> pd.DataFrame:
     df["margem_bazin_%"] = [i.margem for i in infos]
     df["status_bazin"] = [i.status for i in infos]
     df["status_key"] = [i.status_key for i in infos]
-
-    # 💵 Dividendo por cota (12m) — nova coluna
     df["div_cota_12m"] = [div_cota_resumo(t, tipo) for t in df["ticker"]]
 
     df["valor_investido"] = df["quantidade"] * df["preco_medio"]
@@ -1254,7 +1245,6 @@ with tabs[1]:
             )
             st.plotly_chart(fig, use_container_width=True)
 
-    # Tabelas com coluna "Div/cota 12m"
     for titulo, df_ in [("📋 Ações", df_acoes), ("🏢 Fundos Imobiliários", df_fiis)]:
         section(titulo)
         if df_.empty:
@@ -1373,7 +1363,6 @@ with tabs[2]:
         else:
             st.info("ℹ️ Sem histórico de dividendos suficiente para calcular o teto.")
 
-    # 💵 Bloco de dividendo por cota — usa função central
     if info_cad and info_cad.dy_12m > 0:
         section("💵 Dividendo pago por cota — histórico real dos últimos 12 meses")
         render_dividendo_por_cota(
@@ -1383,7 +1372,6 @@ with tabs[2]:
             key_prefix="cad",
         )
 
-    # ═══ Modo de compra ═══
     section("🛒 Como você quer registrar a compra?")
     modo = st.radio(
         "Modo de compra",
@@ -1441,7 +1429,6 @@ with tabs[2]:
             else:
                 st.warning("⚠️ Busque a cotação do ticker acima para calcular automaticamente.")
 
-    # ═══ Detalhes da compra ═══
     section("📊 Detalhes da compra")
     c1, c2 = st.columns(2)
     with c1:
@@ -1489,7 +1476,6 @@ with tabs[2]:
                 format="%.2f", value=float(cot_val), key="cad_preco_manual",
             )
 
-    # ═══ PROJEÇÃO EDITÁVEL ═══
     if info_cad and quantidade > 0 and preco_preview > 0:
         section("💰 Projeção de lucro com dividendos — EDITÁVEL")
         st.caption(
@@ -1808,7 +1794,6 @@ with tabs[3]:
             unsafe_allow_html=True,
         )
 
-        # 💵 Dividendo por cota do ativo selecionado
         if info_edit.dy_12m > 0:
             section(f"💵 Dividendo pago por cota — {reg['ticker']}")
             render_dividendo_por_cota(
@@ -2234,7 +2219,7 @@ with tabs[7]:
             st.rerun()
 
 
-# ── ABA 8: APORTES ─────────────────────────────────────────────────────
+# ── ABA 8: APORTES (COM EXCLUSÃO) ──────────────────────────────────────
 with tabs[8]:
     section("📜 Histórico de Aportes")
     df_ap = carregar_aportes(USER_ID)
@@ -2250,7 +2235,6 @@ with tabs[8]:
             ).preco_teto,
             axis=1,
         )
-        # 💵 Dividendo por cota dos últimos 12 meses
         df_ap["div_cota_12m"] = df_ap.apply(
             lambda r: div_cota_resumo(
                 r["ticker"], "acao" if r["tipo"] == "Ação" else "fii"
@@ -2314,3 +2298,76 @@ with tabs[8]:
             }),
             use_container_width=True, hide_index=True, height=400,
         )
+
+        # ══════════════════════════════════════════════════════════════
+        # 🗑️ EXCLUIR APORTE (NOVO)
+        # ══════════════════════════════════════════════════════════════
+        section("🗑️ Excluir um aporte")
+        st.caption(
+            "Selecione um aporte da lista abaixo e confirme a exclusão. "
+            "A operação remove o registro do histórico de aportes."
+        )
+
+        opcoes_ap = {}
+        for _, r in df_ap.iterrows():
+            data_fmt = r["data"].strftime("%d/%m/%Y") if pd.notna(r["data"]) else "—"
+            rotulo = (
+                f"#{r['id']} · {r['ticker']} ({r['tipo']}) · "
+                f"{int(r['quantidade'])} cotas × R$ {float(r['preco']):.2f} = "
+                f"R$ {float(r['total']):.2f} · {data_fmt}"
+            )
+            opcoes_ap[rotulo] = r["id"]
+
+        sel_ap = st.selectbox(
+            "Selecione o aporte para excluir:",
+            options=list(opcoes_ap.keys()),
+            key="del_aporte_sel",
+        )
+        id_aporte = opcoes_ap[sel_ap]
+
+        # Detalhe do aporte selecionado
+        reg_ap = df_ap[df_ap["id"] == id_aporte].iloc[0]
+        st.markdown(
+            f"""
+            <div style="background: rgba(255,92,122,0.08);
+                        border-left: 3px solid #FF5C7A;
+                        border-radius: 8px; padding: 14px 20px; margin: 10px 0;">
+                <div style="color:#A0AEC0; font-size:11px; font-weight:700; letter-spacing:1px;">
+                    ⚠️ APORTE SELECIONADO PARA EXCLUSÃO
+                </div>
+                <div style="color:#FFFFFF; font-size:14px; margin-top:8px; line-height:1.7;">
+                    <b>{reg_ap['ticker']}</b> ({reg_ap['tipo']}) · 
+                    <b>{int(reg_ap['quantidade'])} cotas</b> × 
+                    R$ {float(reg_ap['preco']):.2f} = 
+                    <b style="color:#FF5C7A;">R$ {float(reg_ap['total']):,.2f}</b> · 
+                    {reg_ap['data'].strftime('%d/%m/%Y')}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        confirma = st.checkbox(
+            "✅ Confirmo que quero excluir este aporte (ação irreversível)",
+            key="confirma_del_aporte",
+        )
+
+        col_del1, col_del2 = st.columns([1, 3])
+        with col_del1:
+            botao_del = st.button(
+                "🗑️ Excluir aporte",
+                use_container_width=True,
+                disabled=not confirma,
+                key="btn_del_aporte",
+            )
+        with col_del2:
+            if not confirma:
+                st.caption("Marque a confirmação acima para habilitar o botão.")
+
+        if botao_del and confirma:
+            try:
+                deletar_aporte(id_aporte, USER_ID)
+                st.success(f"✅ Aporte #{id_aporte} excluído com sucesso!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Erro ao excluir aporte: {e}")
