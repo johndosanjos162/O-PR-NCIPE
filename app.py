@@ -1,6 +1,6 @@
 """
 🎯 Gestor de Investimentos B3 — Edição Premium Integrada com Login
-Streamlit + Pandas + Supabase Auth + Brapi (cotações + Bazin)
+Streamlit + Pandas + Supabase Auth + Brapi (cotações + Bazin + Projeções)
 """
 
 import io
@@ -25,10 +25,10 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-BAZIN_TAXA = 0.06  # yield mínimo desejado (6% a.a.)
+BAZIN_TAXA = 0.06
 
 # ══════════════════════════════════════════════════════════════════════
-# CSS PREMIUM — CORES CORRIGIDAS (inclui inputs disabled)
+# CSS PREMIUM
 # ══════════════════════════════════════════════════════════════════════
 st.markdown(
     """
@@ -43,7 +43,6 @@ st.markdown(
         color: #E6EDF7;
     }
 
-    /* HERO */
     .hero {
         background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 50%, #7B61FF 100%);
         padding: 28px 32px; border-radius: 20px; margin-bottom: 24px;
@@ -60,7 +59,6 @@ st.markdown(
         font-size: 13px; letter-spacing: 0.5px;
     }
 
-    /* METRIC CARDS */
     .metric-card {
         background: linear-gradient(145deg, #131C2F 0%, #0F1729 100%);
         border: 1px solid rgba(0, 229, 160, 0.12);
@@ -84,7 +82,6 @@ st.markdown(
     .delta.down { color: #FF5C7A !important; }
     .delta.neutral { color: #A0AEC0 !important; }
 
-    /* SIDEBAR */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0B1220 0%, #060B14 100%);
         border-right: 1px solid rgba(255,255,255,0.05);
@@ -104,7 +101,6 @@ st.markdown(
         color: #A0AEC0 !important;
     }
 
-    /* TABS */
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05);
     }
@@ -120,7 +116,6 @@ st.markdown(
     }
     .stTabs [aria-selected="true"] p { color: #00E5A0 !important; }
 
-    /* BOTÕES */
     .stButton > button {
         background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 100%);
         color: #060B14 !important; font-weight: 700; border: none; border-radius: 10px;
@@ -139,9 +134,6 @@ st.markdown(
     }
     .stDownloadButton > button p { color: #060B14 !important; font-weight: 700 !important; }
 
-    /* ══════════════════════════════════════════════════════════
-       INPUTS — CORRIGIDO (inclui disabled com contraste forte)
-       ══════════════════════════════════════════════════════════ */
     .stTextInput label, .stNumberInput label, .stSelectbox label,
     .stDateInput label, .stCheckbox label, .stRadio label,
     .stTextArea label, .stSlider label, .stMultiSelect label,
@@ -150,11 +142,7 @@ st.markdown(
         font-weight: 600 !important;
     }
 
-    /* INPUT normal — texto branco puro */
-    .stTextInput input,
-    .stNumberInput input,
-    .stDateInput input,
-    .stTextArea textarea {
+    .stTextInput input, .stNumberInput input, .stDateInput input, .stTextArea textarea {
         background: #1B2740 !important;
         color: #FFFFFF !important;
         -webkit-text-fill-color: #FFFFFF !important;
@@ -165,8 +153,6 @@ st.markdown(
         font-size: 16px !important;
         opacity: 1 !important;
     }
-
-    /* INPUT desabilitado — texto verde neon para contraste máximo */
     .stNumberInput input:disabled,
     .stTextInput input:disabled,
     .stDateInput input:disabled,
@@ -180,8 +166,6 @@ st.markdown(
         font-weight: 800 !important;
         border: 1px solid rgba(0, 229, 160, 0.35) !important;
     }
-
-    /* Placeholder */
     .stTextInput input::placeholder,
     .stNumberInput input::placeholder,
     .stTextArea textarea::placeholder {
@@ -189,8 +173,6 @@ st.markdown(
         -webkit-text-fill-color: #6B7A99 !important;
         opacity: 1 !important;
     }
-
-    /* Focus */
     .stTextInput input:focus,
     .stNumberInput input:focus,
     .stDateInput input:focus {
@@ -199,8 +181,6 @@ st.markdown(
         color: #FFFFFF !important;
         -webkit-text-fill-color: #FFFFFF !important;
     }
-
-    /* Botões +/- do number input */
     .stNumberInput button {
         background: #24325A !important;
         color: #FFFFFF !important;
@@ -216,16 +196,12 @@ st.markdown(
         fill: #FFFFFF !important;
         stroke: #FFFFFF !important;
     }
-
-    /* Container do number input */
     .stNumberInput > div > div,
     div[data-baseweb="input"],
     div[data-baseweb="base-input"] {
         background: #1B2740 !important;
         border-radius: 10px !important;
     }
-
-    /* Garantia extra: qualquer input dentro do form */
     [data-testid="stForm"] input {
         color: #FFFFFF !important;
         -webkit-text-fill-color: #FFFFFF !important;
@@ -240,7 +216,6 @@ st.markdown(
         font-weight: 800 !important;
     }
 
-    /* Selectbox */
     .stSelectbox div[data-baseweb="select"] > div {
         background: #1B2740 !important;
         color: #FFFFFF !important;
@@ -248,29 +223,21 @@ st.markdown(
         border-radius: 10px !important;
     }
     .stSelectbox div[data-baseweb="select"] span,
-    .stSelectbox div[data-baseweb="select"] div {
-        color: #FFFFFF !important;
-    }
+    .stSelectbox div[data-baseweb="select"] div { color: #FFFFFF !important; }
     div[data-baseweb="popover"] div,
     div[data-baseweb="popover"] ul,
     div[data-baseweb="popover"] li {
-        background: #131C2F !important;
-        color: #FFFFFF !important;
+        background: #131C2F !important; color: #FFFFFF !important;
     }
-    div[data-baseweb="popover"] li:hover {
-        background: #1B2740 !important;
-    }
+    div[data-baseweb="popover"] li:hover { background: #1B2740 !important; }
 
     .stCheckbox div[data-testid="stMarkdownContainer"] p,
-    .stRadio div[data-testid="stMarkdownContainer"] p {
-        color: #E6EDF7 !important;
-    }
+    .stRadio div[data-testid="stMarkdownContainer"] p { color: #E6EDF7 !important; }
     .stRadio div[role="radiogroup"] label { color: #E6EDF7 !important; }
 
     .stSlider [data-baseweb="slider"] div { color: #E6EDF7 !important; }
     .stSlider [role="slider"] { background-color: #00E5A0 !important; }
 
-    /* FORM */
     [data-testid="stForm"] {
         background: rgba(19, 28, 47, 0.55) !important;
         border: 1px solid rgba(255,255,255,0.08) !important;
@@ -278,27 +245,18 @@ st.markdown(
         padding: 22px !important;
     }
 
-    /* ALERTAS */
     .stAlert { border-radius: 12px !important; }
     .stAlert div, .stAlert p, .stAlert span { color: #FFFFFF !important; }
     div[data-baseweb="notification"] { border-radius: 12px !important; }
 
-    /* DATAFRAMES */
     .stDataFrame {
         border-radius: 12px; overflow: hidden;
         border: 1px solid rgba(255,255,255,0.05);
     }
-    .stDataFrame [data-testid="stTable"],
-    .stDataFrame [data-testid="stDataFrameResizable"] {
-        color: #E6EDF7 !important;
-    }
     .stDataFrame div[role="columnheader"] { color: #E6EDF7 !important; }
     .stDataFrame div[role="gridcell"] { color: #E6EDF7 !important; }
 
-    /* CAPTION */
-    .stCaption, [data-testid="stCaptionContainer"] {
-        color: #A0AEC0 !important;
-    }
+    .stCaption, [data-testid="stCaptionContainer"] { color: #A0AEC0 !important; }
 
     .section-title {
         font-size: 18px; font-weight: 700; color: #FFFFFF !important;
@@ -306,7 +264,6 @@ st.markdown(
         border-left: 3px solid #00E5A0;
     }
 
-    /* BAZIN CARD */
     .bazin-card {
         background: linear-gradient(135deg, rgba(0,229,160,0.10), rgba(0,168,232,0.06));
         border: 1px solid rgba(0,229,160,0.30); border-radius: 14px;
@@ -335,7 +292,6 @@ st.markdown(
     .status-sem     { background: rgba(122,134,153,0.15); color: #A0AEC0 !important;
                       border: 1px solid rgba(122,134,153,0.4); }
 
-    /* LOGIN */
     .login-wrap {
         max-width: 440px; margin: 60px auto 0 auto;
         background: linear-gradient(145deg, #131C2F 0%, #0F1729 100%);
@@ -373,7 +329,7 @@ except Exception as e:
 BRAPI_TOKEN = st.secrets["brapi"]["token"]
 
 # ══════════════════════════════════════════════════════════════════════
-# AUTENTICAÇÃO (LOGIN APENAS)
+# AUTENTICAÇÃO
 # ══════════════════════════════════════════════════════════════════════
 if "auth_user" not in st.session_state:
     st.session_state.auth_user = None
@@ -414,14 +370,12 @@ def render_login_screen():
         """,
         unsafe_allow_html=True,
     )
-
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
         with st.form("form_login"):
             email = st.text_input("📧 Email", key="login_email")
             senha = st.text_input("🔒 Senha", type="password", key="login_senha")
             entrar = st.form_submit_button("🔓 Entrar", use_container_width=True)
-
             if entrar:
                 if not email or not senha:
                     st.warning("Preencha email e senha.")
@@ -431,13 +385,9 @@ def render_login_screen():
                     if err:
                         st.error(err)
                     else:
-                        st.session_state.auth_user = {
-                            "id": user.id,
-                            "email": user.email,
-                        }
+                        st.session_state.auth_user = {"id": user.id, "email": user.email}
                         st.success("✅ Bem-vindo!")
                         st.rerun()
-
         st.markdown(
             """
             <div style="text-align:center; margin-top:18px; color:#A0AEC0; font-size:12px;">
@@ -457,7 +407,7 @@ USER_ID = USER["id"]
 USER_EMAIL = USER["email"]
 
 # ══════════════════════════════════════════════════════════════════════
-# APIs DE MERCADO (BRAPI)
+# APIs DE MERCADO
 # ══════════════════════════════════════════════════════════════════════
 @st.cache_data(ttl=300, show_spinner=False)
 def get_cotacao(ticker: str) -> float:
@@ -511,7 +461,7 @@ def calcular_dy_12m(ticker: str, tipo: str) -> float:
 
 
 # ══════════════════════════════════════════════════════════════════════
-# NÚCLEO INTELIGENTE — BAZIN
+# BAZIN
 # ══════════════════════════════════════════════════════════════════════
 @dataclass
 class AtivoInfo:
@@ -555,13 +505,6 @@ def status_pill_html(info: AtivoInfo) -> str:
         "proximo": "status-proximo", "caro": "status-caro", "sem": "status-sem",
     }[info.status_key]
     return f'<span class="status-pill {cls}">{info.status}</span>'
-
-
-def cor_status(key):
-    return {
-        "forte": "#00E5A0", "bom": "#4ADE80",
-        "proximo": "#FACC15", "caro": "#FF5C7A", "sem": "#A0AEC0",
-    }.get(key, "#A0AEC0")
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -632,13 +575,9 @@ def carregar_aportes(user_id: str) -> pd.DataFrame:
 
 def registrar_aporte(ticker, tipo, qtd, preco, data_, user_id):
     supabase.table("aportes").insert({
-        "ticker": ticker,
-        "tipo": tipo,
-        "quantidade": int(qtd),
-        "preco": float(preco),
-        "total": float(qtd) * float(preco),
-        "data": str(data_),
-        "user_id": user_id,
+        "ticker": ticker, "tipo": tipo, "quantidade": int(qtd),
+        "preco": float(preco), "total": float(qtd) * float(preco),
+        "data": str(data_), "user_id": user_id,
     }).execute()
     carregar_aportes.clear()
 
@@ -657,11 +596,8 @@ def carregar_watchlist(user_id: str) -> pd.DataFrame:
 
 def salvar_watchlist(ticker, tipo, preco_alvo, obs, user_id):
     supabase.table("watchlist").insert({
-        "ticker": ticker,
-        "tipo": tipo,
-        "preco_alvo": float(preco_alvo),
-        "observacao": obs,
-        "user_id": user_id,
+        "ticker": ticker, "tipo": tipo, "preco_alvo": float(preco_alvo),
+        "observacao": obs, "user_id": user_id,
     }).execute()
     carregar_watchlist.clear()
 
@@ -669,6 +605,32 @@ def salvar_watchlist(ticker, tipo, preco_alvo, obs, user_id):
 def deletar_watchlist(id_, user_id):
     supabase.table("watchlist").delete().eq("id", id_).eq("user_id", user_id).execute()
     carregar_watchlist.clear()
+
+
+# ══════════════════════════════════════════════════════════════════════
+# PROJEÇÕES SALVAS (NOVO)
+# ══════════════════════════════════════════════════════════════════════
+@st.cache_data(ttl=15, show_spinner=False)
+def carregar_projecoes(user_id: str) -> pd.DataFrame:
+    try:
+        resp = (
+            supabase.table("projecoes").select("*")
+            .eq("user_id", user_id).order("created_at", desc=True).execute()
+        )
+        return pd.DataFrame(resp.data) if resp.data else pd.DataFrame()
+    except Exception:
+        return pd.DataFrame()
+
+
+def salvar_projecao(dados: dict, user_id: str):
+    dados["user_id"] = user_id
+    supabase.table("projecoes").insert(dados).execute()
+    carregar_projecoes.clear()
+
+
+def deletar_projecao(id_: int, user_id: str):
+    supabase.table("projecoes").delete().eq("id", id_).eq("user_id", user_id).execute()
+    carregar_projecoes.clear()
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -720,6 +682,42 @@ def projetar(valor_inicial, dy_anual, meses, aporte_mensal, reinvestir=True):
             "Total investido": round(inv_total, 2),
         })
     return pd.DataFrame(regs)
+
+
+def projetar_renda_ativo(quantidade, preco_unitario, dy_anual, meses=60, reinvestir=True):
+    investimento_total = quantidade * preco_unitario
+    div_cota_ano = preco_unitario * dy_anual
+    div_cota_mes = div_cota_ano / 12
+    renda_anual_ini = quantidade * div_cota_ano
+    renda_mensal_ini = renda_anual_ini / 12
+    payback_meses = (1 / dy_anual) * 12 if dy_anual > 0 else 0
+
+    dy_mensal = (1 + dy_anual) ** (1 / 12) - 1 if dy_anual > 0 else 0
+    cotas = float(quantidade)
+    renda_acum = 0.0
+    regs = []
+    for m in range(1, meses + 1):
+        div_mes = cotas * preco_unitario * dy_mensal
+        renda_acum += div_mes
+        if reinvestir:
+            cotas += div_mes / preco_unitario
+        regs.append({
+            "Mês": m,
+            "Renda no mês (R$)": round(div_mes, 2),
+            "Renda acumulada (R$)": round(renda_acum, 2),
+            "Cotas": round(cotas, 2),
+            "Patrimônio (R$)": round(cotas * preco_unitario, 2),
+        })
+
+    return {
+        "investimento_total": investimento_total,
+        "div_cota_ano": div_cota_ano,
+        "div_cota_mes": div_cota_mes,
+        "renda_anual_ini": renda_anual_ini,
+        "renda_mensal_ini": renda_mensal_ini,
+        "payback_meses": payback_meses,
+        "df": pd.DataFrame(regs),
+    }
 
 
 def dy_medio_carteira(df_a: pd.DataFrame, df_f: pd.DataFrame) -> float:
@@ -807,13 +805,9 @@ with st.sidebar:
     )
 
     novo_valor = st.number_input(
-        "Atualizar saldo (R$)",
-        min_value=0.0,
-        value=float(cfg.get("valor_disponivel", 0.0)),
-        step=100.0,
-        format="%.2f",
-        label_visibility="collapsed",
-        key="input_saldo",
+        "Atualizar saldo (R$)", min_value=0.0,
+        value=float(cfg.get("valor_disponivel", 0.0)), step=100.0,
+        format="%.2f", label_visibility="collapsed", key="input_saldo",
     )
     if st.button("💾 Salvar saldo", use_container_width=True):
         atualizar_config(USER_ID, valor=novo_valor)
@@ -851,6 +845,7 @@ tabs = st.tabs([
     "➕ Cadastrar",
     "✏️ Gerenciar",
     "📈 Projeções",
+    "💾 Projeções Salvas",
     "🎯 Rebalancear",
     "👁️ Watchlist",
     "📜 Aportes",
@@ -904,13 +899,10 @@ with tabs[0]:
                 "status_bazin": "Status",
             })
             .style.format({
-                "Cotação": "R$ {:.2f}",
-                "Teto Bazin": "R$ {:.2f}",
-                "Margem vs Teto": "{:+.1f}%",
-                "DY 12m": "{:.2f}%",
+                "Cotação": "R$ {:.2f}", "Teto Bazin": "R$ {:.2f}",
+                "Margem vs Teto": "{:+.1f}%", "DY 12m": "{:.2f}%",
             }),
-            use_container_width=True,
-            hide_index=True,
+            use_container_width=True, hide_index=True,
         )
 
         df_plot = df_radar[df_radar["preco_teto"] > 0].copy()
@@ -932,8 +924,7 @@ with tabs[0]:
                 paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
                 font=dict(color="#E6EDF7"), height=420,
                 yaxis=dict(gridcolor="rgba(255,255,255,0.05)"),
-                legend=dict(orientation="h", y=1.1),
-                hovermode="x unified",
+                legend=dict(orientation="h", y=1.1), hovermode="x unified",
             )
             st.plotly_chart(fig, use_container_width=True)
 
@@ -1113,6 +1104,10 @@ with tabs[2]:
                     <div class="val" style="color:#00E5A0;">R$ {info_cad.preco_teto:.2f}</div>
                 </div>
                 <div class="cell">
+                    <div class="lbl">DY 12M</div>
+                    <div class="val" style="color:#FACC15;">{info_cad.dy_12m*100:.2f}%</div>
+                </div>
+                <div class="cell">
                     <div class="lbl">MARGEM VS TETO</div>
                     <div class="val" style="color:{info_cad.cor};">{info_cad.margem:+.1f}%</div>
                 </div>
@@ -1133,9 +1128,7 @@ with tabs[2]:
     modo = st.radio(
         "Modo de compra",
         ["🎯 Por quantidade de cotas", "💰 Por valor em R$"],
-        horizontal=True,
-        label_visibility="collapsed",
-        key="cad_modo",
+        horizontal=True, label_visibility="collapsed", key="cad_modo",
     )
 
     cot_disponivel = float(info_cad.cotacao) if info_cad and info_cad.cotacao > 0 else 0.0
@@ -1148,22 +1141,15 @@ with tabs[2]:
         with cA:
             valor_investir = st.number_input(
                 "💵 Valor que quero investir (R$)",
-                min_value=0.01,
-                value=1000.0,
-                step=100.0,
-                format="%.2f",
-                key="cad_valor_investir",
+                min_value=0.01, value=1000.0, step=100.0,
+                format="%.2f", key="cad_valor_investir",
             )
             descontar_saldo = st.checkbox(
-                "💳 Descontar do saldo disponível",
-                value=True,
-                help="Se marcado, o valor realmente gasto é deduzido do saldo "
-                     "e o troco é devolvido automaticamente.",
+                "💳 Descontar do saldo disponível", value=True,
+                help="Se marcado, o valor realmente gasto é deduzido do saldo.",
             )
             if descontar_saldo:
-                st.caption(
-                    f"Saldo atual: R$ {cfg_cad.get('valor_disponivel', 0):,.2f}"
-                )
+                st.caption(f"Saldo atual: R$ {cfg_cad.get('valor_disponivel', 0):,.2f}")
         with cB:
             if cot_disponivel > 0:
                 qtd_calc = int(valor_investir // cot_disponivel)
@@ -1195,53 +1181,272 @@ with tabs[2]:
             else:
                 st.warning("⚠️ Busque a cotação do ticker acima para calcular automaticamente.")
 
-    with st.form("form_novo"):
-        c1, c2, c3 = st.columns(3)
-
-        with c1:
-            if modo.startswith("🎯"):
-                quantidade = st.number_input(
-                    "Quantidade de cotas", min_value=1, step=1, value=100
+    # ═══ Detalhes da compra ═══
+    section("📊 Detalhes da compra")
+    c1, c2 = st.columns(2)
+    with c1:
+        if modo.startswith("🎯"):
+            quantidade = st.number_input(
+                "Quantidade de cotas", min_value=1, step=1, value=100,
+                key="cad_qtd_preview",
+            )
+        else:
+            if cot_disponivel > 0 and valor_investir:
+                quantidade = int(valor_investir // cot_disponivel)
+                st.markdown("**Quantidade calculada automaticamente**")
+                st.markdown(
+                    f"<div style='font-size:32px; font-weight:900; color:#00E5A0; "
+                    f"padding: 8px 0; letter-spacing:-0.5px;'>{quantidade} cotas</div>",
+                    unsafe_allow_html=True,
                 )
             else:
-                st.markdown("**Quantidade calculada**")
-                if cot_disponivel > 0 and valor_investir:
-                    qtd_prev = int(valor_investir // cot_disponivel)
-                    st.markdown(
-                        f"<div style='font-size:26px; font-weight:900; color:#00E5A0; "
-                        f"padding: 6px 0;'>{qtd_prev} cotas</div>",
-                        unsafe_allow_html=True,
-                    )
-                else:
-                    st.markdown(
-                        "<div style='color:#FF5C7A; font-weight:700; padding:6px 0;'>"
-                        "Informe o ticker e o valor acima</div>",
-                        unsafe_allow_html=True,
-                    )
+                quantidade = 0
+                st.markdown("**Quantidade calculada automaticamente**")
+                st.markdown(
+                    "<div style='color:#FF5C7A; font-weight:700; padding:8px 0; "
+                    "font-size:16px;'>Informe o ticker e o valor acima</div>",
+                    unsafe_allow_html=True,
+                )
 
-        with c2:
-            cot_val = cot_disponivel if cot_disponivel > 0 else 10.0
-            usar_auto = st.checkbox(
-                "🎯 Usar cotação do mercado",
-                value=(cot_disponivel > 0),
-                help="Desmarque para digitar o preço manualmente.",
+    with c2:
+        cot_val = cot_disponivel if cot_disponivel > 0 else 10.0
+        usar_auto = st.checkbox(
+            "🎯 Usar cotação do mercado", value=(cot_disponivel > 0),
+            help="Desmarque para digitar o preço manualmente.",
+            key="cad_usar_auto",
+        )
+        if usar_auto:
+            preco_preview = float(cot_val)
+            st.markdown("**Preço (cotação do mercado)**")
+            st.markdown(
+                f"<div style='font-size:32px; font-weight:900; color:#00E5A0; "
+                f"padding: 8px 0; letter-spacing:-0.5px;'>R$ {preco_preview:.2f}</div>",
+                unsafe_allow_html=True,
             )
-            preco_manual = st.number_input(
-                "Preço (R$)",
-                min_value=0.01,
-                step=0.01,
-                format="%.2f",
-                value=cot_val,
-                disabled=usar_auto,
+        else:
+            preco_preview = st.number_input(
+                "Preço manual (R$)", min_value=0.01, step=0.01,
+                format="%.2f", value=float(cot_val), key="cad_preco_manual",
             )
 
-        with c3:
+    # ══════════════════════════════════════════════════════════════════
+    # 💰 PROJEÇÃO EDITÁVEL
+    # ══════════════════════════════════════════════════════════════════
+    if info_cad and quantidade > 0 and preco_preview > 0:
+        section("💰 Projeção de lucro com dividendos — EDITÁVEL")
+
+        st.caption(
+            "🖊️ Ajuste os campos abaixo livremente — o cálculo se atualiza em tempo real."
+        )
+
+        # ─── Campos editáveis ───
+        e1, e2, e3, e4 = st.columns(4)
+        with e1:
+            qtd_proj = st.number_input(
+                "Quantidade de cotas",
+                min_value=1, step=1, value=int(quantidade),
+                key="proj_qtd",
+            )
+        with e2:
+            preco_proj = st.number_input(
+                "Preço por cota (R$)",
+                min_value=0.01, step=0.01, format="%.2f",
+                value=float(preco_preview),
+                key="proj_preco",
+            )
+        with e3:
+            dy_base = info_cad.dy_12m * 100 if info_cad.dy_12m > 0 else 8.0
+            dy_proj = st.slider(
+                "DY anual (%)",
+                min_value=0.0, max_value=25.0,
+                value=float(round(dy_base, 2)),
+                step=0.25,
+                help="Ajuste livremente — preenchido com o DY real de 12 meses.",
+                key="proj_dy",
+            )
+        with e4:
+            meses_proj = st.slider(
+                "Horizonte (meses)",
+                min_value=6, max_value=360, value=60, step=6,
+                key="proj_meses",
+            )
+
+        reinvestir_proj = st.checkbox(
+            "♻️ Reinvestir dividendos automaticamente (juros compostos)",
+            value=True, key="proj_reinvest",
+        )
+
+        # ─── Recalcula tudo ───
+        proj = projetar_renda_ativo(
+            quantidade=qtd_proj,
+            preco_unitario=preco_proj,
+            dy_anual=dy_proj / 100,
+            meses=meses_proj,
+            reinvestir=reinvestir_proj,
+        )
+        df_proj = proj["df"]
+
+        # ─── KPIs ───
+        k1, k2, k3, k4 = st.columns(4)
+        with k1:
+            metric_card("💵 Investimento", f"R$ {proj['investimento_total']:,.2f}",
+                        f"{qtd_proj} cotas × R$ {preco_proj:.2f}", "neutral")
+        with k2:
+            metric_card("📅 Dividendo por cota", f"R$ {proj['div_cota_ano']:.2f}",
+                        f"ano · R$ {proj['div_cota_mes']:.2f}/mês", "up")
+        with k3:
+            metric_card("💸 Renda mensal est.", f"R$ {proj['renda_mensal_ini']:,.2f}",
+                        f"R$ {proj['renda_anual_ini']:,.2f}/ano", "up")
+        with k4:
+            metric_card("⏱️ Payback", f"{proj['payback_meses']:.0f} meses",
+                        f"DY {dy_proj:.2f}% a.a.", "neutral")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ─── Destaque ───
+        st.markdown(
+            f"""
+            <div style="background: linear-gradient(135deg, rgba(0,229,160,0.15), rgba(0,168,232,0.08));
+                        border: 1px solid rgba(0,229,160,0.4); border-radius: 16px;
+                        padding: 22px 26px; margin: 12px 0;">
+                <div style="color:#A0AEC0; font-size:11px; font-weight:700; letter-spacing:1.2px;">
+                    🎯 PROJEÇÃO COM BASE NO HISTÓRICO REAL DE DIVIDENDOS
+                </div>
+                <div style="color:#FFFFFF; font-size:18px; margin-top:10px; line-height:1.6;">
+                    Com <b style="color:#00E5A0;">{qtd_proj} cotas</b> de 
+                    <b style="color:#00E5A0;">{info_cad.ticker}</b> a 
+                    <b>R$ {preco_proj:.2f}</b>, você receberá aproximadamente
+                    <b style="color:#00E5A0; font-size:22px;">R$ {proj['renda_anual_ini']:,.2f} por ano</b>
+                    em dividendos
+                    <span style="color:#A0AEC0;">(≈ R$ {proj['renda_mensal_ini']:,.2f}/mês)</span>.
+                </div>
+                <div style="color:#A0AEC0; font-size:13px; margin-top:10px;">
+                    ⏱️ Em <b style="color:#FFFFFF;">{proj['payback_meses']:.0f} meses</b> 
+                    (≈ {proj['payback_meses']/12:.1f} anos) os dividendos terão pago todo o investimento.
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # ─── Marcos ───
+        marcos = [12, 24, 36, 60]
+        marcos = [m for m in marcos if m <= len(df_proj)]
+        cols_m = st.columns(len(marcos))
+        for i, m in enumerate(marcos):
+            linha = df_proj[df_proj["Mês"] == m].iloc[0]
+            with cols_m[i]:
+                st.markdown(
+                    f"""
+                    <div style="background: rgba(19,28,47,0.7); border: 1px solid rgba(255,255,255,0.08);
+                                border-radius: 12px; padding: 14px 16px; text-align: center;">
+                        <div style="color:#A0AEC0; font-size:11px; font-weight:700; letter-spacing:1px;">
+                            EM {m} MESES
+                        </div>
+                        <div style="color:#00E5A0; font-size:18px; font-weight:800; margin-top:6px;">
+                            R$ {linha['Renda acumulada (R$)']:,.2f}
+                        </div>
+                        <div style="color:#A0AEC0; font-size:11px; margin-top:2px;">
+                            renda acumulada
+                        </div>
+                        <div style="color:#FFFFFF; font-size:13px; font-weight:700; margin-top:8px;">
+                            {linha['Cotas']:.1f} cotas
+                        </div>
+                        <div style="color:#A0AEC0; font-size:11px;">
+                            R$ {linha['Patrimônio (R$)']:,.2f} em patrimônio
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ─── Gráfico ───
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=df_proj["Mês"], y=df_proj["Renda acumulada (R$)"],
+            mode="lines", name="💰 Renda acumulada",
+            line=dict(color="#00E5A0", width=3),
+            fill="tozeroy", fillcolor="rgba(0,229,160,0.12)",
+        ))
+        fig.add_trace(go.Scatter(
+            x=df_proj["Mês"], y=df_proj["Patrimônio (R$)"],
+            mode="lines", name="📈 Patrimônio",
+            line=dict(color="#00A8E8", width=3, dash="dot"),
+        ))
+        fig.add_hline(
+            y=proj["investimento_total"],
+            line_dash="dash", line_color="#FF5C7A",
+            annotation_text=f"Investimento: R$ {proj['investimento_total']:,.2f}",
+            annotation_position="top left",
+            annotation_font_color="#FF5C7A",
+        )
+        fig.update_layout(
+            title=f"Projeção de {qtd_proj} cotas de {info_cad.ticker} — {meses_proj} meses",
+            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#E6EDF7"), height=420,
+            xaxis=dict(gridcolor="rgba(255,255,255,0.05)", title="Mês"),
+            yaxis=dict(gridcolor="rgba(255,255,255,0.05)", title="R$"),
+            legend=dict(orientation="h", y=1.12), hovermode="x unified",
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+        with st.expander("📋 Ver projeção mês a mês"):
+            st.dataframe(
+                df_proj.style.format({
+                    "Renda no mês (R$)": "R$ {:.2f}",
+                    "Renda acumulada (R$)": "R$ {:.2f}",
+                    "Cotas": "{:.2f}",
+                    "Patrimônio (R$)": "R$ {:.2f}",
+                }),
+                use_container_width=True, hide_index=True, height=320,
+            )
+
+        # ─── SALVAR PROJEÇÃO ───
+        section("💾 Salvar esta projeção no Supabase")
+        with st.form("form_salvar_proj"):
+            obs_proj = st.text_input(
+                "Observação (opcional)",
+                placeholder="Ex: meta 2026, cenário conservador...",
+                key="proj_obs",
+            )
+            if st.form_submit_button("💾 Salvar projeção", use_container_width=True):
+                dados = {
+                    "ticker": info_cad.ticker,
+                    "tipo": info_cad.tipo,
+                    "quantidade": float(qtd_proj),
+                    "preco": float(preco_proj),
+                    "dy_anual": float(dy_proj / 100),
+                    "meses": int(meses_proj),
+                    "reinvestir": bool(reinvestir_proj),
+                    "investimento_total": float(proj["investimento_total"]),
+                    "renda_mensal": float(proj["renda_mensal_ini"]),
+                    "renda_anual": float(proj["renda_anual_ini"]),
+                    "renda_acumulada_final": float(df_proj.iloc[-1]["Renda acumulada (R$)"]),
+                    "patrimonio_final": float(df_proj.iloc[-1]["Patrimônio (R$)"]),
+                    "payback_meses": float(proj["payback_meses"]),
+                    "observacao": obs_proj if obs_proj else None,
+                }
+                try:
+                    salvar_projecao(dados, USER_ID)
+                    st.success(
+                        f"✅ Projeção de {info_cad.ticker} salva! "
+                        f"Veja na aba **💾 Projeções Salvas**."
+                    )
+                except Exception as e:
+                    st.error(f"Erro ao salvar: {e}")
+
+    # ═══ Formulário de cadastro ═══
+    section("✅ Confirmar cadastro do ativo")
+    with st.form("form_novo"):
+        c1, c2 = st.columns(2)
+        with c1:
             data_compra = st.date_input("Data da compra", value=date.today())
+        with c2:
             registrar = st.checkbox("Registrar no histórico de aportes", value=True)
 
-        submitted = st.form_submit_button(
-            "💾 Cadastrar ativo", use_container_width=True
-        )
+        submitted = st.form_submit_button("💾 Cadastrar ativo", use_container_width=True)
 
         if submitted:
             if not ticker:
@@ -1251,19 +1456,16 @@ with tabs[2]:
             elif modo.startswith("💰") and (valor_investir is None or valor_investir <= 0):
                 st.error("Informe um valor válido para investir.")
             else:
-                preco_final = float(cot_val) if usar_auto else float(preco_manual)
+                preco_final = float(preco_preview)
 
                 if modo.startswith("🎯"):
                     qtd_final = int(quantidade)
                     total_gasto_final = qtd_final * preco_final
                     sobra_final = 0.0
                 else:
-                    qtd_final = int(valor_investir // preco_final)
+                    qtd_final = int(quantidade)
                     if qtd_final <= 0:
-                        st.error(
-                            f"Valor insuficiente. Com R$ {valor_investir:.2f} "
-                            f"a R$ {preco_final:.2f} você não compra nem 1 cota."
-                        )
+                        st.error("Valor insuficiente para comprar 1 cota.")
                         st.stop()
                     total_gasto_final = qtd_final * preco_final
                     sobra_final = valor_investir - total_gasto_final
@@ -1271,21 +1473,15 @@ with tabs[2]:
                 tabela = "acoes" if tipo == "Ação" else "fiis"
 
                 try:
-                    salvar_ativo(
-                        tabela,
-                        {
-                            "ticker": ticker,
-                            "quantidade": qtd_final,
-                            "preco_medio": preco_final,
-                            "data_compra": str(data_compra),
-                        },
-                        USER_ID,
-                    )
+                    salvar_ativo(tabela, {
+                        "ticker": ticker,
+                        "quantidade": qtd_final,
+                        "preco_medio": preco_final,
+                        "data_compra": str(data_compra),
+                    }, USER_ID)
 
                     if registrar:
-                        registrar_aporte(
-                            ticker, tipo, qtd_final, preco_final, data_compra, USER_ID
-                        )
+                        registrar_aporte(ticker, tipo, qtd_final, preco_final, data_compra, USER_ID)
 
                     if modo.startswith("💰") and descontar_saldo:
                         saldo_atual = float(cfg_cad.get("valor_disponivel", 0.0))
@@ -1293,7 +1489,7 @@ with tabs[2]:
                         atualizar_config(USER_ID, valor=novo_saldo)
                         msg_saldo = (
                             f" · 💳 Saldo: R$ {saldo_atual:,.2f} → "
-                            f"R$ {novo_saldo:,.2f} (sobra devolvida: R$ {sobra_final:.2f})"
+                            f"R$ {novo_saldo:,.2f} (sobra: R$ {sobra_final:.2f})"
                         )
                     else:
                         msg_saldo = ""
@@ -1363,22 +1559,17 @@ with tabs[3]:
         with st.form("form_edit"):
             c1, c2 = st.columns(2)
             with c1:
-                nova_qtd = st.number_input(
-                    "Quantidade", min_value=1, value=int(reg["quantidade"])
-                )
+                nova_qtd = st.number_input("Quantidade", min_value=1, value=int(reg["quantidade"]))
                 novo_tk = st.text_input("Ticker", value=reg["ticker"])
             with c2:
                 usar_mkt = st.checkbox(
                     f"🎯 Usar cotação atual (R$ {info_edit.cotacao:.2f})",
-                    value=False,
-                    key=f"usar_mkt_{id_sel}",
+                    value=False, key=f"usar_mkt_{id_sel}",
                 )
                 novo_preco = st.number_input(
-                    "Preço médio (R$)",
-                    min_value=0.01,
+                    "Preço médio (R$)", min_value=0.01,
                     value=float(info_edit.cotacao if usar_mkt else reg["preco_medio"]),
-                    format="%.2f",
-                    disabled=usar_mkt,
+                    format="%.2f", disabled=usar_mkt,
                 )
                 nova_data = st.date_input(
                     "Data da compra",
@@ -1386,17 +1577,12 @@ with tabs[3]:
                 )
             col_a, col_b = st.columns(2)
             if col_a.form_submit_button("✏️ Atualizar", use_container_width=True):
-                atualizar_ativo(
-                    tabela,
-                    id_sel,
-                    {
-                        "ticker": novo_tk.upper().strip(),
-                        "quantidade": int(nova_qtd),
-                        "preco_medio": float(novo_preco),
-                        "data_compra": str(nova_data),
-                    },
-                    USER_ID,
-                )
+                atualizar_ativo(tabela, id_sel, {
+                    "ticker": novo_tk.upper().strip(),
+                    "quantidade": int(nova_qtd),
+                    "preco_medio": float(novo_preco),
+                    "data_compra": str(nova_data),
+                }, USER_ID)
                 st.success("Atualizado!")
                 st.rerun()
             if col_b.form_submit_button("🗑️ Excluir", use_container_width=True):
@@ -1405,17 +1591,16 @@ with tabs[3]:
                 st.rerun()
 
 
-# ── ABA 4: PROJEÇÕES ───────────────────────────────────────────────────
+# ── ABA 4: PROJEÇÕES (carteira geral) ──────────────────────────────────
 with tabs[4]:
-    section("📈 Projeção de Juros Compostos")
+    section("📈 Projeção de Juros Compostos da Carteira")
 
     df_a_proj = enriquecer(carregar_ativos("acoes", USER_ID), "acao")
     df_f_proj = enriquecer(carregar_ativos("fiis", USER_ID), "fii")
 
     dy_carteira = (
         dy_medio_carteira(df_a_proj, df_f_proj) / 100
-        if not (df_a_proj.empty and df_f_proj.empty)
-        else 0.10
+        if not (df_a_proj.empty and df_f_proj.empty) else 0.10
     )
     if dy_carteira <= 0:
         dy_carteira = 0.10
@@ -1434,8 +1619,7 @@ with tabs[4]:
             step=1000.0, format="%.2f",
         )
         dy_input = st.slider(
-            "DY anual esperado (%)", 0.0, 25.0,
-            float(dy_carteira * 100), 0.25,
+            "DY anual esperado (%)", 0.0, 25.0, float(dy_carteira * 100), 0.25,
         )
     with c2:
         meses = st.slider("Horizonte (meses)", 6, 360, 120, 6)
@@ -1458,8 +1642,7 @@ with tabs[4]:
             df_p = projetar(patrimonio_ini, dy_c, meses, aporte, reinvestir)
             fig.add_trace(go.Scatter(
                 x=df_p["Mês"], y=df_p["Patrimônio"],
-                mode="lines", name=nome,
-                line=dict(color=cores[nome], width=3),
+                mode="lines", name=nome, line=dict(color=cores[nome], width=3),
             ))
         fig.update_layout(
             title="Projeção de Patrimônio — 3 Cenários",
@@ -1477,11 +1660,9 @@ with tabs[4]:
             df_p = projetar(patrimonio_ini, dy_c, meses, aporte, reinvestir)
             final = df_p.iloc[-1]
             with cols[i]:
-                metric_card(
-                    nome, f"R$ {final['Patrimônio']:,.0f}",
-                    f"Div. acum.: R$ {final['Dividendos acumulados']:,.0f}",
-                    "up" if i == 2 else ("neutral" if i == 1 else "down"),
-                )
+                metric_card(nome, f"R$ {final['Patrimônio']:,.0f}",
+                            f"Div. acum.: R$ {final['Dividendos acumulados']:,.0f}",
+                            "up" if i == 2 else ("neutral" if i == 1 else "down"))
 
     section("🎯 Meta de Independência Financeira")
     meta = st.number_input(
@@ -1499,8 +1680,113 @@ with tabs[4]:
         )
 
 
-# ── ABA 5: REBALANCEAR ─────────────────────────────────────────────────
+# ── ABA 5: PROJEÇÕES SALVAS ────────────────────────────────────────────
 with tabs[5]:
+    section("💾 Projeções Salvas")
+
+    df_proj_salvas = carregar_projecoes(USER_ID)
+
+    if df_proj_salvas.empty:
+        st.info(
+            "Nenhuma projeção salva ainda. Vá em **➕ Cadastrar**, "
+            "monte uma projeção e clique em **💾 Salvar projeção**."
+        )
+    else:
+        # ─── KPIs ───
+        c1, c2, c3, c4 = st.columns(4)
+        with c1:
+            metric_card("Total de projeções", str(len(df_proj_salvas)))
+        with c2:
+            soma_inv = df_proj_salvas["investimento_total"].sum()
+            metric_card("Investimento simulado", f"R$ {soma_inv:,.2f}")
+        with c3:
+            soma_renda = df_proj_salvas["renda_mensal"].sum()
+            metric_card("Renda mensal projetada", f"R$ {soma_renda:,.2f}")
+        with c4:
+            soma_patr = df_proj_salvas["patrimonio_final"].sum()
+            metric_card("Patrimônio final", f"R$ {soma_patr:,.2f}")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # ─── Tabela ───
+        cols = ["ticker", "tipo", "quantidade", "preco", "dy_anual",
+                "meses", "reinvestir", "investimento_total", "renda_mensal",
+                "renda_anual", "renda_acumulada_final", "patrimonio_final",
+                "payback_meses", "observacao"]
+        st.dataframe(
+            df_proj_salvas[cols].rename(columns={
+                "ticker": "Ticker", "tipo": "Tipo", "quantidade": "Qtd",
+                "preco": "Preço", "dy_anual": "DY", "meses": "Meses",
+                "reinvestir": "Reinveste", "investimento_total": "Investimento",
+                "renda_mensal": "Renda/mês", "renda_anual": "Renda/ano",
+                "renda_acumulada_final": "Renda acum.",
+                "patrimonio_final": "Patrimônio", "payback_meses": "Payback (m)",
+                "observacao": "Obs.",
+            }).style.format({
+                "Preço": "R$ {:.2f}",
+                "DY": "{:.2%}",
+                "Investimento": "R$ {:,.2f}",
+                "Renda/mês": "R$ {:,.2f}",
+                "Renda/ano": "R$ {:,.2f}",
+                "Renda acum.": "R$ {:,.2f}",
+                "Patrimônio": "R$ {:,.2f}",
+                "Payback (m)": "{:.0f}",
+            }),
+            use_container_width=True, hide_index=True,
+        )
+
+        # ─── Gráfico comparativo ───
+        if len(df_proj_salvas) > 0:
+            df_plot = df_proj_salvas.sort_values("renda_anual", ascending=False).head(15)
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=df_plot["ticker"], y=df_plot["renda_anual"],
+                name="Renda anual",
+                marker_color="#00E5A0",
+                text=df_plot["renda_anual"].round(2), textposition="outside",
+            ))
+            fig.add_trace(go.Scatter(
+                x=df_plot["ticker"], y=df_plot["patrimonio_final"],
+                name="Patrimônio final", mode="markers+lines", yaxis="y2",
+                marker=dict(color="#00A8E8", size=10),
+                line=dict(color="#00A8E8", width=2, dash="dot"),
+            ))
+            fig.update_layout(
+                title="Comparativo das projeções salvas",
+                paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+                font=dict(color="#E6EDF7"), height=420,
+                yaxis=dict(title="Renda anual (R$)",
+                           gridcolor="rgba(255,255,255,0.05)"),
+                yaxis2=dict(title="Patrimônio final (R$)", overlaying="y",
+                            side="right", showgrid=False),
+                legend=dict(orientation="h", y=1.1),
+                hovermode="x unified",
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+        # ─── Excluir ───
+        section("🗑️ Excluir uma projeção")
+        del_id = st.selectbox(
+            "Selecione a projeção para excluir:",
+            options=df_proj_salvas["id"].tolist(),
+            format_func=lambda x: (
+                f"{df_proj_salvas[df_proj_salvas['id'] == x]['ticker'].iloc[0]} "
+                f"— {df_proj_salvas[df_proj_salvas['id'] == x]['quantidade'].iloc[0]:.0f} cotas "
+                f"({df_proj_salvas[df_proj_salvas['id'] == x]['meses'].iloc[0]} meses)"
+            ),
+            key="del_proj_sel",
+        )
+        if st.button("🗑️ Excluir projeção", use_container_width=True):
+            try:
+                deletar_projecao(del_id, USER_ID)
+                st.success("Projeção excluída!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Erro ao excluir: {e}")
+
+
+# ── ABA 6: REBALANCEAR ─────────────────────────────────────────────────
+with tabs[6]:
     section("🎯 Rebalanceamento Inteligente")
 
     df_a = carregar_ativos("acoes", USER_ID)
@@ -1518,8 +1804,7 @@ with tabs[5]:
         valor_aporte = st.number_input(
             "Valor disponível para aporte (R$)", min_value=0.0,
             value=saldo_disp_reb if saldo_disp_reb > 0 else 1000.0,
-            step=100.0,
-            help="Por padrão usa o saldo disponível da barra lateral.",
+            step=100.0, help="Por padrão usa o saldo disponível da barra lateral.",
         )
         priorizar_bazin = st.checkbox(
             "🎯 Priorizar ativos abaixo do Preço Teto de Bazin", value=True,
@@ -1568,9 +1853,7 @@ with tabs[5]:
                               else ("🟡" if a["status_key"] == "proximo" else "🔴"),
                     "Atual (R$)": a["valor"],
                     "% Atual": (a["valor"] / tot * 100) if tot > 0 else 0,
-                    "Meta %": metas[tk],
-                    "Alvo (R$)": alvo,
-                    "Gap (R$)": gap,
+                    "Meta %": metas[tk], "Alvo (R$)": alvo, "Gap (R$)": gap,
                     "status_key": a["status_key"],
                 })
             df_reb = pd.DataFrame(rows)
@@ -1623,8 +1906,8 @@ with tabs[5]:
             st.plotly_chart(fig, use_container_width=True)
 
 
-# ── ABA 6: WATCHLIST ───────────────────────────────────────────────────
-with tabs[6]:
+# ── ABA 7: WATCHLIST ───────────────────────────────────────────────────
+with tabs[7]:
     section("👁️ Watchlist — Distância ao Teto Bazin")
 
     with st.form("form_watch", clear_on_submit=True):
@@ -1651,9 +1934,7 @@ with tabs[6]:
     else:
         linhas = []
         for _, r in df_w.iterrows():
-            info = get_ativo_info(
-                r["ticker"], "acao" if r["tipo"] == "Ação" else "fii"
-            )
+            info = get_ativo_info(r["ticker"], "acao" if r["tipo"] == "Ação" else "fii")
             dist_alvo = (
                 (info.cotacao / r["preco_alvo"] - 1) * 100
                 if r["preco_alvo"] > 0 else 0
@@ -1687,8 +1968,8 @@ with tabs[6]:
             st.rerun()
 
 
-# ── ABA 7: APORTES ─────────────────────────────────────────────────────
-with tabs[7]:
+# ── ABA 8: APORTES ─────────────────────────────────────────────────────
+with tabs[8]:
     section("📜 Histórico de Aportes")
     df_ap = carregar_aportes(USER_ID)
 
@@ -1705,8 +1986,7 @@ with tabs[7]:
         )
         df_ap["ganho_%"] = np.where(
             df_ap["preco"] > 0,
-            (df_ap["cotacao_atual"] / df_ap["preco"] - 1) * 100,
-            0,
+            (df_ap["cotacao_atual"] / df_ap["preco"] - 1) * 100, 0,
         )
 
         c1, c2, c3 = st.columns(3)
