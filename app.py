@@ -1,6 +1,6 @@
 """
 🎯 Gestor de Investimentos B3 — Edição Premium Integrada com Login
-Streamlit + Pandas + Supabase Auth + Brapi (cotações + Bazin + Projeções)
+Streamlit + Pandas + Supabase Auth + Brapi (cotações + Bazin + Dividendos)
 """
 
 import io
@@ -38,11 +38,9 @@ st.markdown(
         color: #E6EDF7;
     }
     .block-container { padding-top: 1.5rem; padding-bottom: 3rem; max-width: 1400px; }
-
     html, body, [class*="css"], p, span, li, h1, h2, h3, h4, h5, h6, label, div {
         color: #E6EDF7;
     }
-
     .hero {
         background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 50%, #7B61FF 100%);
         padding: 28px 32px; border-radius: 20px; margin-bottom: 24px;
@@ -58,7 +56,6 @@ st.markdown(
         padding: 10px 18px; border-radius: 12px; font-weight: 700;
         font-size: 13px; letter-spacing: 0.5px;
     }
-
     .metric-card {
         background: linear-gradient(145deg, #131C2F 0%, #0F1729 100%);
         border: 1px solid rgba(0, 229, 160, 0.12);
@@ -100,7 +97,6 @@ st.markdown(
     section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
         color: #A0AEC0 !important;
     }
-
     .stTabs [data-baseweb="tab-list"] {
         gap: 8px; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05);
     }
@@ -115,7 +111,6 @@ st.markdown(
         border-bottom: 2px solid #00E5A0;
     }
     .stTabs [aria-selected="true"] p { color: #00E5A0 !important; }
-
     .stButton > button {
         background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 100%);
         color: #060B14 !important; font-weight: 700; border: none; border-radius: 10px;
@@ -126,14 +121,12 @@ st.markdown(
         box-shadow: 0 8px 20px rgba(0, 229, 160, 0.25);
     }
     .stButton > button p { color: #060B14 !important; font-weight: 700 !important; }
-
     .stDownloadButton > button {
         background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 100%);
         color: #060B14 !important; font-weight: 700; border: none;
         border-radius: 10px; padding: 10px 16px;
     }
     .stDownloadButton > button p { color: #060B14 !important; font-weight: 700 !important; }
-
     .stTextInput label, .stNumberInput label, .stSelectbox label,
     .stDateInput label, .stCheckbox label, .stRadio label,
     .stTextArea label, .stSlider label, .stMultiSelect label,
@@ -141,7 +134,6 @@ st.markdown(
         color: #E6EDF7 !important;
         font-weight: 600 !important;
     }
-
     .stTextInput input, .stNumberInput input, .stDateInput input, .stTextArea textarea {
         background: #1B2740 !important;
         color: #FFFFFF !important;
@@ -215,7 +207,6 @@ st.markdown(
         opacity: 1 !important;
         font-weight: 800 !important;
     }
-
     .stSelectbox div[data-baseweb="select"] > div {
         background: #1B2740 !important;
         color: #FFFFFF !important;
@@ -230,40 +221,32 @@ st.markdown(
         background: #131C2F !important; color: #FFFFFF !important;
     }
     div[data-baseweb="popover"] li:hover { background: #1B2740 !important; }
-
     .stCheckbox div[data-testid="stMarkdownContainer"] p,
     .stRadio div[data-testid="stMarkdownContainer"] p { color: #E6EDF7 !important; }
     .stRadio div[role="radiogroup"] label { color: #E6EDF7 !important; }
-
     .stSlider [data-baseweb="slider"] div { color: #E6EDF7 !important; }
     .stSlider [role="slider"] { background-color: #00E5A0 !important; }
-
     [data-testid="stForm"] {
         background: rgba(19, 28, 47, 0.55) !important;
         border: 1px solid rgba(255,255,255,0.08) !important;
         border-radius: 16px !important;
         padding: 22px !important;
     }
-
     .stAlert { border-radius: 12px !important; }
     .stAlert div, .stAlert p, .stAlert span { color: #FFFFFF !important; }
     div[data-baseweb="notification"] { border-radius: 12px !important; }
-
     .stDataFrame {
         border-radius: 12px; overflow: hidden;
         border: 1px solid rgba(255,255,255,0.05);
     }
     .stDataFrame div[role="columnheader"] { color: #E6EDF7 !important; }
     .stDataFrame div[role="gridcell"] { color: #E6EDF7 !important; }
-
     .stCaption, [data-testid="stCaptionContainer"] { color: #A0AEC0 !important; }
-
     .section-title {
         font-size: 18px; font-weight: 700; color: #FFFFFF !important;
         margin: 24px 0 12px 0; padding-left: 12px;
         border-left: 3px solid #00E5A0;
     }
-
     .bazin-card {
         background: linear-gradient(135deg, rgba(0,229,160,0.10), rgba(0,168,232,0.06));
         border: 1px solid rgba(0,229,160,0.30); border-radius: 14px;
@@ -276,7 +259,6 @@ st.markdown(
                               font-weight: 700; letter-spacing: 1px; }
     .bazin-card .cell .val { color: #FFFFFF !important; font-size: 20px;
                               font-weight: 800; margin-top: 2px; }
-
     .status-pill {
         display: inline-block; padding: 8px 18px; border-radius: 999px;
         font-size: 13px; font-weight: 800; letter-spacing: 0.5px;
@@ -291,7 +273,6 @@ st.markdown(
                       border: 1px solid rgba(255,92,122,0.4); }
     .status-sem     { background: rgba(122,134,153,0.15); color: #A0AEC0 !important;
                       border: 1px solid rgba(122,134,153,0.4); }
-
     .login-wrap {
         max-width: 440px; margin: 60px auto 0 auto;
         background: linear-gradient(145deg, #131C2F 0%, #0F1729 100%);
@@ -306,7 +287,6 @@ st.markdown(
                    letter-spacing: -0.5px; margin-bottom: 4px; }
     .login-sub { color: #A0AEC0 !important; font-size: 13px;
                  margin-bottom: 6px; letter-spacing: 0.5px; }
-
     #MainMenu {visibility: hidden;} footer {visibility: hidden;}
     </style>
     """,
@@ -426,8 +406,7 @@ def get_cotacao(ticker: str) -> float:
     return 0.0
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
-def get_dividendos(ticker: str, tipo: str = "acao") -> pd.DataFrame:
+def _buscar_dividendos_brapi(ticker: str, tipo: str) -> pd.DataFrame:
     if not ticker:
         return pd.DataFrame()
     try:
@@ -449,6 +428,68 @@ def get_dividendos(ticker: str, tipo: str = "acao") -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def _carregar_dividendos_cache(ticker: str, tipo: str) -> pd.DataFrame:
+    try:
+        resp = (
+            supabase.table("dividendos").select("payment_date,rate")
+            .eq("ticker", ticker).eq("tipo", tipo).execute()
+        )
+        if not resp.data:
+            return pd.DataFrame()
+        df = pd.DataFrame(resp.data)
+        df.columns = ["paymentDate", "rate"]
+        df["paymentDate"] = pd.to_datetime(df["paymentDate"], errors="coerce")
+        df["rate"] = pd.to_numeric(df["rate"], errors="coerce").fillna(0)
+        return df
+    except Exception:
+        return pd.DataFrame()
+
+
+def _salvar_dividendos_cache(ticker: str, tipo: str, df: pd.DataFrame):
+    if df.empty or "rate" not in df.columns:
+        return
+    try:
+        registros = []
+        for _, r in df.iterrows():
+            dt = r.get("paymentDate")
+            dt_str = dt.date().isoformat() if pd.notna(dt) else None
+            registros.append({
+                "ticker": ticker, "tipo": tipo,
+                "payment_date": dt_str, "rate": float(r["rate"]),
+            })
+        if registros:
+            supabase.table("dividendos").upsert(
+                registros,
+                on_conflict="ticker,payment_date,rate",
+                ignore_duplicates=True,
+            ).execute()
+    except Exception:
+        pass
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_dividendos(ticker: str, tipo: str = "acao") -> pd.DataFrame:
+    if not ticker:
+        return pd.DataFrame()
+    df_cache = _carregar_dividendos_cache(ticker, tipo)
+    if not df_cache.empty:
+        corte = pd.Timestamp.now() - pd.DateOffset(months=12)
+        recentes = df_cache[df_cache["paymentDate"] >= corte]
+        if len(recentes) >= 3:
+            return df_cache
+    df_brapi = _buscar_dividendos_brapi(ticker, tipo)
+    if not df_brapi.empty:
+        _salvar_dividendos_cache(ticker, tipo, df_brapi)
+        if not df_cache.empty:
+            df_final = pd.concat([df_cache, df_brapi], ignore_index=True)
+            df_final = df_final.drop_duplicates(
+                subset=["paymentDate", "rate"]
+            ).reset_index(drop=True)
+            return df_final
+        return df_brapi
+    return df_cache
+
+
 def calcular_dy_12m(ticker: str, tipo: str) -> float:
     df = get_dividendos(ticker, tipo)
     if df.empty or "rate" not in df.columns:
@@ -458,6 +499,192 @@ def calcular_dy_12m(ticker: str, tipo: str) -> float:
     total = (df_12m if not df_12m.empty else df.tail(12))["rate"].sum()
     preco = get_cotacao(ticker)
     return float(total / preco) if preco > 0 else 0.0
+
+
+# ══════════════════════════════════════════════════════════════════════
+# 💵 RESUMO DE DIVIDENDOS POR COTA (NOVO)
+# ══════════════════════════════════════════════════════════════════════
+@st.cache_data(ttl=3600, show_spinner=False)
+def get_resumo_dividendos(ticker: str, tipo: str) -> dict:
+    """Retorna resumo dos dividendos por cota dos últimos 12 meses."""
+    vazio = {
+        "ultimo": 0.0, "media": 0.0, "total_12m": 0.0,
+        "n": 0, "data_ultimo": None, "df": pd.DataFrame(),
+    }
+    df = get_dividendos(ticker, tipo)
+    if df.empty or "rate" not in df.columns:
+        return vazio
+
+    df = df.copy()
+    df["paymentDate"] = pd.to_datetime(df["paymentDate"], errors="coerce")
+    corte = pd.Timestamp.now() - pd.DateOffset(months=12)
+    df_12m = df[df["paymentDate"] >= corte].copy()
+    if df_12m.empty:
+        df_12m = df.copy()
+
+    df_12m = df_12m.sort_values("paymentDate", ascending=False).reset_index(drop=True)
+    total = float(df_12m["rate"].sum())
+    n = len(df_12m)
+    ultimo = float(df_12m.iloc[0]["rate"]) if n > 0 else 0.0
+    media = total / n if n > 0 else 0.0
+    data_ultimo = df_12m.iloc[0]["paymentDate"] if n > 0 else None
+
+    return {
+        "ultimo": ultimo,
+        "media": media,
+        "total_12m": total,
+        "n": n,
+        "data_ultimo": data_ultimo,
+        "df": df_12m,
+    }
+
+
+def div_cota_resumo(ticker: str, tipo: str) -> float:
+    """Atalho: retorna só o dividendo anual por cota (12m)."""
+    return get_resumo_dividendos(ticker, tipo)["total_12m"]
+
+
+def render_dividendo_por_cota(
+    ticker: str,
+    tipo: str,
+    cotacao: float = 0.0,
+    compacto: bool = False,
+    key_prefix: str = "",
+):
+    """
+    Renderiza o bloco de dividendo pago por cota.
+    - compacto=True: mostra só os 4 cards (usado em abas resumidas)
+    - compacto=False: cards + tabela + gráfico + rodapé (versão completa)
+    """
+    res = get_resumo_dividendos(ticker, tipo)
+
+    if res["n"] == 0:
+        st.info(f"ℹ️ Sem histórico de dividendos disponível para {ticker}.")
+        return
+
+    dy = (res["total_12m"] / cotacao) if cotacao > 0 else 0.0
+
+    # ─── Cards ───
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        data_str = res["data_ultimo"].strftime("%d/%m/%Y") if res["data_ultimo"] is not None else "—"
+        metric_card(
+            "💵 Último dividendo / cota",
+            f"R$ {res['ultimo']:.4f}",
+            f"pago em {data_str}",
+            "up",
+        )
+    with c2:
+        metric_card(
+            "📅 Média mensal / cota",
+            f"R$ {res['media']:.4f}",
+            f"{res['n']} pagamento(s) em 12m",
+            "up",
+        )
+    with c3:
+        metric_card(
+            "📈 Total anual / cota",
+            f"R$ {res['total_12m']:.4f}",
+            "somando os últimos 12 meses",
+            "up",
+        )
+    with c4:
+        if cotacao > 0:
+            metric_card(
+                "🎯 DY real 12m",
+                f"{dy * 100:.2f}%",
+                f"R$ {res['total_12m']:.4f} ÷ R$ {cotacao:.2f}",
+                "neutral",
+            )
+        else:
+            metric_card(
+                "🎯 DY real 12m",
+                "—",
+                "cotação indisponível",
+                "neutral",
+            )
+
+    if compacto:
+        return
+
+    # ─── Tabela + Gráfico ───
+    st.markdown("<br>", unsafe_allow_html=True)
+    col_tabela, col_grafico = st.columns([1, 1.4])
+
+    with col_tabela:
+        st.markdown(
+            "<div style='color:#FFFFFF; font-weight:700; "
+            "font-size:14px; margin-bottom:8px;'>"
+            "📋 Histórico detalhado por cota</div>",
+            unsafe_allow_html=True,
+        )
+        df_show = res["df"][["paymentDate", "rate"]].copy()
+        df_show["paymentDate"] = df_show["paymentDate"].dt.strftime("%d/%m/%Y")
+        df_show.columns = ["Data do pagamento", "Dividendo / cota (R$)"]
+        st.dataframe(
+            df_show.style.format({"Dividendo / cota (R$)": "R$ {:.4f}"}),
+            use_container_width=True,
+            hide_index=True,
+            height=340,
+        )
+
+    with col_grafico:
+        st.markdown(
+            "<div style='color:#FFFFFF; font-weight:700; "
+            "font-size:14px; margin-bottom:8px;'>"
+            "📊 Evolução mensal do dividendo por cota</div>",
+            unsafe_allow_html=True,
+        )
+        df_graf = res["df"].sort_values("paymentDate").copy()
+        df_graf["rotulo"] = df_graf["paymentDate"].dt.strftime("%b/%y")
+
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            x=df_graf["rotulo"],
+            y=df_graf["rate"],
+            marker_color="#00E5A0",
+            text=df_graf["rate"].round(4),
+            textposition="outside",
+            textfont=dict(color="#FFFFFF", size=11),
+            name="Dividendo por cota",
+        ))
+        fig.update_layout(
+            title=f"{ticker} — R$ por cota",
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#E6EDF7"),
+            height=340,
+            margin=dict(t=40, b=20, l=20, r=20),
+            yaxis=dict(
+                title="R$ por cota",
+                gridcolor="rgba(255,255,255,0.05)",
+                tickformat=".2f",
+            ),
+            xaxis=dict(title="Mês"),
+            showlegend=False,
+            bargap=0.4,
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown(
+        f"""
+        <div style="background: rgba(0,168,232,0.08);
+                    border-left: 3px solid #00A8E8;
+                    border-radius: 8px; padding: 12px 18px;
+                    margin: 10px 0 20px 0;">
+            <div style="color:#A0AEC0; font-size:12px; line-height:1.6;">
+                ℹ️ <b style="color:#FFFFFF;">Como ler estes números:</b>
+                os valores acima representam o <b style="color:#00E5A0;">dividendo pago por cada cota</b> 
+                que você possui — ou seja, quanto o ativo <b>distribui em proventos</b> 
+                por cota, e não o preço de negociação da cota em si.
+                Ex.: se o último dividendo foi <b>R$ {res['ultimo']:.4f}</b> e você tem 
+                <b>100 cotas</b>, você recebe <b style="color:#00E5A0;">R$ {res['ultimo']*100:.2f}</b> 
+                naquele mês.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -608,7 +835,7 @@ def deletar_watchlist(id_, user_id):
 
 
 # ══════════════════════════════════════════════════════════════════════
-# PROJEÇÕES SALVAS (NOVO)
+# PROJEÇÕES SALVAS
 # ══════════════════════════════════════════════════════════════════════
 @st.cache_data(ttl=15, show_spinner=False)
 def carregar_projecoes(user_id: str) -> pd.DataFrame:
@@ -649,6 +876,9 @@ def enriquecer(df: pd.DataFrame, tipo: str = "acao") -> pd.DataFrame:
     df["margem_bazin_%"] = [i.margem for i in infos]
     df["status_bazin"] = [i.status for i in infos]
     df["status_key"] = [i.status_key for i in infos]
+
+    # 💵 Dividendo por cota (12m) — nova coluna
+    df["div_cota_12m"] = [div_cota_resumo(t, tipo) for t in df["ticker"]]
 
     df["valor_investido"] = df["quantidade"] * df["preco_medio"]
     df["valor_atual"] = df["quantidade"] * df["cotacao_atual"]
@@ -888,18 +1118,21 @@ with tabs[0]:
             nomes = ", ".join(oportunidades["ticker"].tolist())
             st.success(f"✨ **{len(oportunidades)} ativo(s) em zona de compra**: {nomes}")
 
-        cols_show = ["ticker", "classe", "cotacao_atual", "preco_teto",
-                     "margem_bazin_%", "dy_12m_%", "status_bazin"]
+        cols_show = ["ticker", "classe", "cotacao_atual", "div_cota_12m",
+                     "preco_teto", "margem_bazin_%", "dy_12m_%", "status_bazin"]
         st.dataframe(
             df_radar[cols_show]
             .rename(columns={
                 "ticker": "Ticker", "classe": "Classe",
-                "cotacao_atual": "Cotação", "preco_teto": "Teto Bazin",
+                "cotacao_atual": "Cotação", "div_cota_12m": "Div/cota 12m (R$)",
+                "preco_teto": "Teto Bazin",
                 "margem_bazin_%": "Margem vs Teto", "dy_12m_%": "DY 12m",
                 "status_bazin": "Status",
             })
             .style.format({
-                "Cotação": "R$ {:.2f}", "Teto Bazin": "R$ {:.2f}",
+                "Cotação": "R$ {:.2f}",
+                "Div/cota 12m (R$)": "R$ {:.4f}",
+                "Teto Bazin": "R$ {:.2f}",
                 "Margem vs Teto": "{:+.1f}%", "DY 12m": "{:.2f}%",
             }),
             use_container_width=True, hide_index=True,
@@ -1021,23 +1254,27 @@ with tabs[1]:
             )
             st.plotly_chart(fig, use_container_width=True)
 
+    # Tabelas com coluna "Div/cota 12m"
     for titulo, df_ in [("📋 Ações", df_acoes), ("🏢 Fundos Imobiliários", df_fiis)]:
         section(titulo)
         if df_.empty:
             st.info("Nenhum cadastrado.")
             continue
         cols = ["ticker", "quantidade", "preco_medio", "cotacao_atual",
-                "preco_teto", "margem_bazin_%", "status_bazin",
+                "div_cota_12m", "preco_teto", "margem_bazin_%", "status_bazin",
                 "valor_atual", "rentabilidade_%", "dy_12m_%"]
         st.dataframe(
             df_[cols].rename(columns={
                 "ticker": "Ticker", "quantidade": "Qtd", "preco_medio": "PM",
-                "cotacao_atual": "Cotação", "preco_teto": "Teto Bazin",
+                "cotacao_atual": "Cotação", "div_cota_12m": "Div/cota 12m (R$)",
+                "preco_teto": "Teto Bazin",
                 "margem_bazin_%": "Margem", "status_bazin": "Status",
                 "valor_atual": "Valor Atual", "rentabilidade_%": "Rent.",
                 "dy_12m_%": "DY 12m",
             }).style.format({
-                "PM": "R$ {:.2f}", "Cotação": "R$ {:.2f}", "Teto Bazin": "R$ {:.2f}",
+                "PM": "R$ {:.2f}", "Cotação": "R$ {:.2f}",
+                "Div/cota 12m (R$)": "R$ {:.4f}",
+                "Teto Bazin": "R$ {:.2f}",
                 "Margem": "{:+.1f}%", "Valor Atual": "R$ {:.2f}",
                 "Rent.": "{:+.2f}%", "DY 12m": "{:.2f}%",
             }),
@@ -1078,6 +1315,18 @@ with tabs[2]:
     with c3:
         st.markdown("<div style='height: 28px'></div>", unsafe_allow_html=True)
         buscar_btn = st.button("🔍 Buscar cotação + Bazin", use_container_width=True)
+
+    assinatura_nova = f"{ticker}|{tipo}" if ticker else ""
+    assinatura_antiga = st.session_state.get("cad_assinatura_ativa", "")
+
+    if assinatura_nova != assinatura_antiga and ticker:
+        for k in list(st.session_state.keys()):
+            if k.startswith("proj_") or k in ("cot_info", "cot_ticker"):
+                try:
+                    del st.session_state[k]
+                except Exception:
+                    pass
+        st.session_state["cad_assinatura_ativa"] = assinatura_nova
 
     ticker_mudou = ticker and st.session_state.get("cot_ticker") != ticker
     if (buscar_btn or ticker_mudou) and ticker:
@@ -1124,6 +1373,17 @@ with tabs[2]:
         else:
             st.info("ℹ️ Sem histórico de dividendos suficiente para calcular o teto.")
 
+    # 💵 Bloco de dividendo por cota — usa função central
+    if info_cad and info_cad.dy_12m > 0:
+        section("💵 Dividendo pago por cota — histórico real dos últimos 12 meses")
+        render_dividendo_por_cota(
+            info_cad.ticker, info_cad.tipo,
+            cotacao=info_cad.cotacao,
+            compacto=False,
+            key_prefix="cad",
+        )
+
+    # ═══ Modo de compra ═══
     section("🛒 Como você quer registrar a compra?")
     modo = st.radio(
         "Modo de compra",
@@ -1229,30 +1489,29 @@ with tabs[2]:
                 format="%.2f", value=float(cot_val), key="cad_preco_manual",
             )
 
-    # ══════════════════════════════════════════════════════════════════
-    # 💰 PROJEÇÃO EDITÁVEL
-    # ══════════════════════════════════════════════════════════════════
+    # ═══ PROJEÇÃO EDITÁVEL ═══
     if info_cad and quantidade > 0 and preco_preview > 0:
         section("💰 Projeção de lucro com dividendos — EDITÁVEL")
-
         st.caption(
-            "🖊️ Ajuste os campos abaixo livremente — o cálculo se atualiza em tempo real."
+            "🖊️ Ajuste os campos abaixo livremente — o cálculo se atualiza em tempo real. "
+            "Trocar de ativo reinicia tudo automaticamente."
         )
 
-        # ─── Campos editáveis ───
+        tag_ativo = f"{info_cad.ticker}_{info_cad.tipo}"
+
         e1, e2, e3, e4 = st.columns(4)
         with e1:
             qtd_proj = st.number_input(
                 "Quantidade de cotas",
                 min_value=1, step=1, value=int(quantidade),
-                key="proj_qtd",
+                key=f"proj_qtd_{tag_ativo}",
             )
         with e2:
             preco_proj = st.number_input(
                 "Preço por cota (R$)",
                 min_value=0.01, step=0.01, format="%.2f",
                 value=float(preco_preview),
-                key="proj_preco",
+                key=f"proj_preco_{tag_ativo}",
             )
         with e3:
             dy_base = info_cad.dy_12m * 100 if info_cad.dy_12m > 0 else 8.0
@@ -1261,22 +1520,21 @@ with tabs[2]:
                 min_value=0.0, max_value=25.0,
                 value=float(round(dy_base, 2)),
                 step=0.25,
-                help="Ajuste livremente — preenchido com o DY real de 12 meses.",
-                key="proj_dy",
+                help=f"Preenchido com o DY real de 12 meses de {info_cad.ticker} ({dy_base:.2f}%).",
+                key=f"proj_dy_{tag_ativo}",
             )
         with e4:
             meses_proj = st.slider(
                 "Horizonte (meses)",
                 min_value=6, max_value=360, value=60, step=6,
-                key="proj_meses",
+                key=f"proj_meses_{tag_ativo}",
             )
 
         reinvestir_proj = st.checkbox(
             "♻️ Reinvestir dividendos automaticamente (juros compostos)",
-            value=True, key="proj_reinvest",
+            value=True, key=f"proj_reinvest_{tag_ativo}",
         )
 
-        # ─── Recalcula tudo ───
         proj = projetar_renda_ativo(
             quantidade=qtd_proj,
             preco_unitario=preco_proj,
@@ -1286,14 +1544,13 @@ with tabs[2]:
         )
         df_proj = proj["df"]
 
-        # ─── KPIs ───
         k1, k2, k3, k4 = st.columns(4)
         with k1:
             metric_card("💵 Investimento", f"R$ {proj['investimento_total']:,.2f}",
                         f"{qtd_proj} cotas × R$ {preco_proj:.2f}", "neutral")
         with k2:
-            metric_card("📅 Dividendo por cota", f"R$ {proj['div_cota_ano']:.2f}",
-                        f"ano · R$ {proj['div_cota_mes']:.2f}/mês", "up")
+            metric_card("📅 Dividendo por cota", f"R$ {proj['div_cota_ano']:.4f}",
+                        f"ano · R$ {proj['div_cota_mes']:.4f}/mês", "up")
         with k3:
             metric_card("💸 Renda mensal est.", f"R$ {proj['renda_mensal_ini']:,.2f}",
                         f"R$ {proj['renda_anual_ini']:,.2f}/ano", "up")
@@ -1303,7 +1560,6 @@ with tabs[2]:
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ─── Destaque ───
         st.markdown(
             f"""
             <div style="background: linear-gradient(135deg, rgba(0,229,160,0.15), rgba(0,168,232,0.08));
@@ -1329,7 +1585,6 @@ with tabs[2]:
             unsafe_allow_html=True,
         )
 
-        # ─── Marcos ───
         marcos = [12, 24, 36, 60]
         marcos = [m for m in marcos if m <= len(df_proj)]
         cols_m = st.columns(len(marcos))
@@ -1362,7 +1617,6 @@ with tabs[2]:
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ─── Gráfico ───
         fig = go.Figure()
         fig.add_trace(go.Scatter(
             x=df_proj["Mês"], y=df_proj["Renda acumulada (R$)"],
@@ -1403,13 +1657,12 @@ with tabs[2]:
                 use_container_width=True, hide_index=True, height=320,
             )
 
-        # ─── SALVAR PROJEÇÃO ───
         section("💾 Salvar esta projeção no Supabase")
-        with st.form("form_salvar_proj"):
+        with st.form(f"form_salvar_proj_{tag_ativo}"):
             obs_proj = st.text_input(
                 "Observação (opcional)",
                 placeholder="Ex: meta 2026, cenário conservador...",
-                key="proj_obs",
+                key=f"proj_obs_{tag_ativo}",
             )
             if st.form_submit_button("💾 Salvar projeção", use_container_width=True):
                 dados = {
@@ -1437,7 +1690,6 @@ with tabs[2]:
                 except Exception as e:
                     st.error(f"Erro ao salvar: {e}")
 
-    # ═══ Formulário de cadastro ═══
     section("✅ Confirmar cadastro do ativo")
     with st.form("form_novo"):
         c1, c2 = st.columns(2)
@@ -1501,7 +1753,7 @@ with tabs[2]:
                         f"= **R$ {total_gasto_final:,.2f}** ({origem}){msg_saldo}"
                     )
 
-                    for k in ("cot_info", "cot_ticker"):
+                    for k in ("cot_info", "cot_ticker", "cad_assinatura_ativa"):
                         st.session_state.pop(k, None)
                     st.rerun()
 
@@ -1556,6 +1808,16 @@ with tabs[3]:
             unsafe_allow_html=True,
         )
 
+        # 💵 Dividendo por cota do ativo selecionado
+        if info_edit.dy_12m > 0:
+            section(f"💵 Dividendo pago por cota — {reg['ticker']}")
+            render_dividendo_por_cota(
+                reg["ticker"], tipo_key,
+                cotacao=info_edit.cotacao,
+                compacto=False,
+                key_prefix=f"edit_{id_sel}",
+            )
+
         with st.form("form_edit"):
             c1, c2 = st.columns(2)
             with c1:
@@ -1591,7 +1853,7 @@ with tabs[3]:
                 st.rerun()
 
 
-# ── ABA 4: PROJEÇÕES (carteira geral) ──────────────────────────────────
+# ── ABA 4: PROJEÇÕES ───────────────────────────────────────────────────
 with tabs[4]:
     section("📈 Projeção de Juros Compostos da Carteira")
 
@@ -1692,7 +1954,6 @@ with tabs[5]:
             "monte uma projeção e clique em **💾 Salvar projeção**."
         )
     else:
-        # ─── KPIs ───
         c1, c2, c3, c4 = st.columns(4)
         with c1:
             metric_card("Total de projeções", str(len(df_proj_salvas)))
@@ -1708,7 +1969,6 @@ with tabs[5]:
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ─── Tabela ───
         cols = ["ticker", "tipo", "quantidade", "preco", "dy_anual",
                 "meses", "reinvestir", "investimento_total", "renda_mensal",
                 "renda_anual", "renda_acumulada_final", "patrimonio_final",
@@ -1735,7 +1995,6 @@ with tabs[5]:
             use_container_width=True, hide_index=True,
         )
 
-        # ─── Gráfico comparativo ───
         if len(df_proj_salvas) > 0:
             df_plot = df_proj_salvas.sort_values("renda_anual", ascending=False).head(15)
             fig = go.Figure()
@@ -1764,7 +2023,6 @@ with tabs[5]:
             )
             st.plotly_chart(fig, use_container_width=True)
 
-        # ─── Excluir ───
         section("🗑️ Excluir uma projeção")
         del_id = st.selectbox(
             "Selecione a projeção para excluir:",
@@ -1934,14 +2192,19 @@ with tabs[7]:
     else:
         linhas = []
         for _, r in df_w.iterrows():
-            info = get_ativo_info(r["ticker"], "acao" if r["tipo"] == "Ação" else "fii")
+            tipo_key = "acao" if r["tipo"] == "Ação" else "fii"
+            info = get_ativo_info(r["ticker"], tipo_key)
+            res = get_resumo_dividendos(r["ticker"], tipo_key)
             dist_alvo = (
                 (info.cotacao / r["preco_alvo"] - 1) * 100
                 if r["preco_alvo"] > 0 else 0
             )
             linhas.append({
                 "Ticker": r["ticker"], "Tipo": r["tipo"],
-                "Cotação": info.cotacao, "Preço alvo": r["preco_alvo"],
+                "Cotação": info.cotacao,
+                "Div/cota 12m": res["total_12m"],
+                "Último div/cota": res["ultimo"],
+                "Preço alvo": r["preco_alvo"],
                 "Dist. alvo": dist_alvo, "Teto Bazin": info.preco_teto,
                 "Margem Bazin": info.margem, "Status": info.status,
                 "Obs.": r["observacao"], "id": r["id"],
@@ -1950,7 +2213,10 @@ with tabs[7]:
 
         st.dataframe(
             df_w_show.drop(columns=["id"]).style.format({
-                "Cotação": "R$ {:.2f}", "Preço alvo": "R$ {:.2f}",
+                "Cotação": "R$ {:.2f}",
+                "Div/cota 12m": "R$ {:.4f}",
+                "Último div/cota": "R$ {:.4f}",
+                "Preço alvo": "R$ {:.2f}",
                 "Dist. alvo": "{:+.1f}%", "Teto Bazin": "R$ {:.2f}",
                 "Margem Bazin": "{:+.1f}%",
             }),
@@ -1982,6 +2248,13 @@ with tabs[8]:
             lambda r: get_ativo_info(
                 r["ticker"], "acao" if r["tipo"] == "Ação" else "fii"
             ).preco_teto,
+            axis=1,
+        )
+        # 💵 Dividendo por cota dos últimos 12 meses
+        df_ap["div_cota_12m"] = df_ap.apply(
+            lambda r: div_cota_resumo(
+                r["ticker"], "acao" if r["tipo"] == "Ação" else "fii"
+            ),
             axis=1,
         )
         df_ap["ganho_%"] = np.where(
@@ -2023,16 +2296,20 @@ with tabs[8]:
         section("📋 Detalhamento")
         st.dataframe(
             df_ap[["data", "ticker", "tipo", "quantidade", "preco",
-                   "cotacao_atual", "ganho_%", "preco_teto", "total"]]
+                   "cotacao_atual", "ganho_%", "div_cota_12m",
+                   "preco_teto", "total"]]
             .rename(columns={
                 "data": "Data", "ticker": "Ticker", "tipo": "Tipo",
                 "quantidade": "Qtd", "preco": "Preço pago",
                 "cotacao_atual": "Cotação hoje", "ganho_%": "Variação",
+                "div_cota_12m": "Div/cota 12m (R$)",
                 "preco_teto": "Teto Bazin", "total": "Total",
             })
             .style.format({
                 "Preço pago": "R$ {:.2f}", "Cotação hoje": "R$ {:.2f}",
-                "Variação": "{:+.2f}%", "Teto Bazin": "R$ {:.2f}",
+                "Variação": "{:+.2f}%",
+                "Div/cota 12m (R$)": "R$ {:.4f}",
+                "Teto Bazin": "R$ {:.2f}",
                 "Total": "R$ {:.2f}",
             }),
             use_container_width=True, hide_index=True, height=400,
