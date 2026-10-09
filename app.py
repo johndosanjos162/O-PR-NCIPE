@@ -28,28 +28,39 @@ st.set_page_config(
 BAZIN_TAXA = 0.06  # yield mínimo desejado (6% a.a.)
 
 # ══════════════════════════════════════════════════════════════════════
-# CSS PREMIUM
+# CSS PREMIUM — CORES CORRIGIDAS
 # ══════════════════════════════════════════════════════════════════════
 st.markdown(
     """
     <style>
-    .main { background: radial-gradient(circle at top left, #0B1220 0%, #060B14 100%); }
+    .main, .stApp {
+        background: radial-gradient(circle at top left, #0B1220 0%, #060B14 100%);
+        color: #E6EDF7;
+    }
     .block-container { padding-top: 1.5rem; padding-bottom: 3rem; max-width: 1400px; }
 
+    html, body, [class*="css"], p, span, li, h1, h2, h3, h4, h5, h6, label, div {
+        color: #E6EDF7;
+    }
+
+    /* HERO */
     .hero {
         background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 50%, #7B61FF 100%);
         padding: 28px 32px; border-radius: 20px; margin-bottom: 24px;
         box-shadow: 0 12px 40px rgba(0, 229, 160, 0.15);
         display: flex; align-items: center; justify-content: space-between;
     }
-    .hero h1 { color: #060B14; font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -0.5px; }
-    .hero p  { color: #060B14; opacity: 0.75; margin: 4px 0 0 0; font-size: 14px; font-weight: 500; }
+    .hero h1 { color: #060B14 !important; font-size: 32px; font-weight: 800;
+               margin: 0; letter-spacing: -0.5px; }
+    .hero p  { color: #060B14 !important; opacity: 0.75; margin: 4px 0 0 0;
+               font-size: 14px; font-weight: 500; }
     .hero .badge {
-        background: rgba(6, 11, 20, 0.85); color: #00E5A0;
+        background: rgba(6, 11, 20, 0.85); color: #00E5A0 !important;
         padding: 10px 18px; border-radius: 12px; font-weight: 700;
         font-size: 13px; letter-spacing: 0.5px;
     }
 
+    /* METRIC CARDS */
     .metric-card {
         background: linear-gradient(145deg, #131C2F 0%, #0F1729 100%);
         border: 1px solid rgba(0, 229, 160, 0.12);
@@ -65,55 +76,171 @@ st.markdown(
         border-color: rgba(0, 229, 160, 0.35);
         box-shadow: 0 12px 28px rgba(0, 229, 160, 0.12);
     }
-    .metric-card .label { color: #7A8699; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; }
-    .metric-card .value { color: #E6EDF7; font-size: 26px; font-weight: 800; margin-top: 6px; }
+    .metric-card .label { color: #A0AEC0 !important; font-size: 12px; font-weight: 600;
+                          text-transform: uppercase; letter-spacing: 0.8px; }
+    .metric-card .value { color: #FFFFFF !important; font-size: 26px; font-weight: 800; margin-top: 6px; }
     .metric-card .delta { font-size: 13px; font-weight: 600; margin-top: 4px; }
-    .delta.up   { color: #00E5A0; }
-    .delta.down { color: #FF5C7A; }
-    .delta.neutral { color: #7A8699; }
+    .delta.up   { color: #00E5A0 !important; }
+    .delta.down { color: #FF5C7A !important; }
+    .delta.neutral { color: #A0AEC0 !important; }
 
+    /* SIDEBAR */
     section[data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0B1220 0%, #060B14 100%);
         border-right: 1px solid rgba(255,255,255,0.05);
     }
+    section[data-testid="stSidebar"] * { color: #E6EDF7 !important; }
+    section[data-testid="stSidebar"] label { color: #E6EDF7 !important; }
     section[data-testid="stSidebar"] .stButton > button {
         background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 100%);
-        color: #060B14; font-weight: 700; border: none;
+        color: #060B14 !important; font-weight: 700; border: none;
         border-radius: 10px; padding: 10px 16px; transition: all 0.2s ease;
     }
     section[data-testid="stSidebar"] .stButton > button:hover {
         transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 229, 160, 0.3);
     }
+    section[data-testid="stSidebar"] .stCaption,
+    section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
+        color: #A0AEC0 !important;
+    }
 
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    /* TABS */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px; background: transparent; border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
     .stTabs [data-baseweb="tab"] {
         background: #131C2F; border-radius: 12px 12px 0 0; padding: 10px 20px;
-        color: #7A8699; font-weight: 600; border: 1px solid transparent;
+        color: #A0AEC0 !important; font-weight: 600; border: 1px solid transparent;
     }
+    .stTabs [data-baseweb="tab"] p { color: #A0AEC0 !important; }
     .stTabs [aria-selected="true"] {
         background: linear-gradient(135deg, rgba(0,229,160,0.15), rgba(0,168,232,0.1));
-        color: #00E5A0 !important; border-bottom: 2px solid #00E5A0;
+        color: #00E5A0 !important;
+        border-bottom: 2px solid #00E5A0;
     }
+    .stTabs [aria-selected="true"] p { color: #00E5A0 !important; }
 
+    /* BOTÕES */
     .stButton > button {
         background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 100%);
-        color: #060B14; font-weight: 700; border: none; border-radius: 10px;
-        transition: all 0.2s ease;
+        color: #060B14 !important; font-weight: 700; border: none; border-radius: 10px;
+        transition: all 0.2s ease; padding: 10px 16px;
     }
-    .stButton > button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 229, 160, 0.25); }
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 229, 160, 0.25);
+    }
+    .stButton > button p { color: #060B14 !important; font-weight: 700 !important; }
 
-    .stDataFrame { border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); }
+    .stDownloadButton > button {
+        background: linear-gradient(135deg, #00E5A0 0%, #00A8E8 100%);
+        color: #060B14 !important; font-weight: 700; border: none;
+        border-radius: 10px; padding: 10px 16px;
+    }
+    .stDownloadButton > button p { color: #060B14 !important; font-weight: 700 !important; }
 
-    .stTextInput input, .stNumberInput input, .stDateInput input {
-        background: #131C2F !important; border-radius: 10px !important;
-        border: 1px solid rgba(255,255,255,0.08) !important; color: #E6EDF7 !important;
+    /* INPUTS */
+    .stTextInput label, .stNumberInput label, .stSelectbox label,
+    .stDateInput label, .stCheckbox label, .stRadio label,
+    .stTextArea label, .stSlider label, .stMultiSelect label,
+    .stFileUploader label {
+        color: #E6EDF7 !important;
+        font-weight: 600 !important;
+    }
+
+    .stTextInput input, .stNumberInput input, .stDateInput input,
+    .stTextArea textarea {
+        background: #1B2740 !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(255,255,255,0.12) !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+    }
+    .stTextInput input::placeholder, .stNumberInput input::placeholder {
+        color: #6B7A99 !important;
+    }
+    .stTextInput input:focus, .stNumberInput input:focus {
+        border-color: #00E5A0 !important;
+        box-shadow: 0 0 0 2px rgba(0,229,160,0.2) !important;
+    }
+
+    .stNumberInput button {
+        background: #24325A !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(255,255,255,0.12) !important;
+    }
+    .stNumberInput button:hover {
+        background: #2E3F73 !important;
+        color: #00E5A0 !important;
+    }
+    .stNumberInput button svg { fill: #FFFFFF !important; }
+
+    .stSelectbox div[data-baseweb="select"] > div {
+        background: #1B2740 !important;
+        color: #FFFFFF !important;
+        border: 1px solid rgba(255,255,255,0.12) !important;
+        border-radius: 10px !important;
+    }
+    .stSelectbox div[data-baseweb="select"] span,
+    .stSelectbox div[data-baseweb="select"] div {
+        color: #FFFFFF !important;
+    }
+    div[data-baseweb="popover"] div,
+    div[data-baseweb="popover"] ul,
+    div[data-baseweb="popover"] li {
+        background: #131C2F !important;
+        color: #FFFFFF !important;
+    }
+    div[data-baseweb="popover"] li:hover {
+        background: #1B2740 !important;
+    }
+
+    .stCheckbox div[data-testid="stMarkdownContainer"] p,
+    .stRadio div[data-testid="stMarkdownContainer"] p {
+        color: #E6EDF7 !important;
+    }
+    .stRadio div[role="radiogroup"] label { color: #E6EDF7 !important; }
+
+    .stSlider [data-baseweb="slider"] div { color: #E6EDF7 !important; }
+    .stSlider [role="slider"] { background-color: #00E5A0 !important; }
+
+    /* FORM */
+    [data-testid="stForm"] {
+        background: rgba(19, 28, 47, 0.55) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 16px !important;
+        padding: 22px !important;
+    }
+
+    /* ALERTAS */
+    .stAlert { border-radius: 12px !important; }
+    .stAlert div, .stAlert p, .stAlert span { color: #FFFFFF !important; }
+    div[data-baseweb="notification"] { border-radius: 12px !important; }
+
+    /* DATAFRAMES */
+    .stDataFrame {
+        border-radius: 12px; overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .stDataFrame [data-testid="stTable"],
+    .stDataFrame [data-testid="stDataFrameResizable"] {
+        color: #E6EDF7 !important;
+    }
+    .stDataFrame div[role="columnheader"] { color: #E6EDF7 !important; }
+    .stDataFrame div[role="gridcell"] { color: #E6EDF7 !important; }
+
+    /* CAPTION */
+    .stCaption, [data-testid="stCaptionContainer"] {
+        color: #A0AEC0 !important;
     }
 
     .section-title {
-        font-size: 18px; font-weight: 700; color: #E6EDF7;
-        margin: 24px 0 12px 0; padding-left: 12px; border-left: 3px solid #00E5A0;
+        font-size: 18px; font-weight: 700; color: #FFFFFF !important;
+        margin: 24px 0 12px 0; padding-left: 12px;
+        border-left: 3px solid #00E5A0;
     }
 
+    /* BAZIN CARD */
     .bazin-card {
         background: linear-gradient(135deg, rgba(0,229,160,0.10), rgba(0,168,232,0.06));
         border: 1px solid rgba(0,229,160,0.30); border-radius: 14px;
@@ -122,20 +249,27 @@ st.markdown(
         flex-wrap: wrap; gap: 16px;
     }
     .bazin-card .cell { display: flex; flex-direction: column; }
-    .bazin-card .cell .lbl { color: #7A8699; font-size: 11px; font-weight: 700; letter-spacing: 1px; }
-    .bazin-card .cell .val { color: #E6EDF7; font-size: 20px; font-weight: 800; margin-top: 2px; }
+    .bazin-card .cell .lbl { color: #A0AEC0 !important; font-size: 11px;
+                              font-weight: 700; letter-spacing: 1px; }
+    .bazin-card .cell .val { color: #FFFFFF !important; font-size: 20px;
+                              font-weight: 800; margin-top: 2px; }
 
     .status-pill {
         display: inline-block; padding: 8px 18px; border-radius: 999px;
         font-size: 13px; font-weight: 800; letter-spacing: 0.5px;
     }
-    .status-forte   { background: rgba(0,229,160,0.18); color: #00E5A0; border: 1px solid rgba(0,229,160,0.5); }
-    .status-bom     { background: rgba(74,222,128,0.15); color: #4ADE80; border: 1px solid rgba(74,222,128,0.4); }
-    .status-proximo { background: rgba(250,204,21,0.15); color: #FACC15; border: 1px solid rgba(250,204,21,0.4); }
-    .status-caro    { background: rgba(255,92,122,0.15); color: #FF5C7A; border: 1px solid rgba(255,92,122,0.4); }
-    .status-sem     { background: rgba(122,134,153,0.15); color: #7A8699; border: 1px solid rgba(122,134,153,0.4); }
+    .status-forte   { background: rgba(0,229,160,0.18); color: #00E5A0 !important;
+                      border: 1px solid rgba(0,229,160,0.5); }
+    .status-bom     { background: rgba(74,222,128,0.15); color: #4ADE80 !important;
+                      border: 1px solid rgba(74,222,128,0.4); }
+    .status-proximo { background: rgba(250,204,21,0.15); color: #FACC15 !important;
+                      border: 1px solid rgba(250,204,21,0.4); }
+    .status-caro    { background: rgba(255,92,122,0.15); color: #FF5C7A !important;
+                      border: 1px solid rgba(255,92,122,0.4); }
+    .status-sem     { background: rgba(122,134,153,0.15); color: #A0AEC0 !important;
+                      border: 1px solid rgba(122,134,153,0.4); }
 
-    /* ─── Tela de login ─── */
+    /* LOGIN */
     .login-wrap {
         max-width: 440px; margin: 60px auto 0 auto;
         background: linear-gradient(145deg, #131C2F 0%, #0F1729 100%);
@@ -146,9 +280,9 @@ st.markdown(
     }
     .login-logo { font-size: 54px; margin-bottom: 6px;
                   filter: drop-shadow(0 0 22px rgba(0, 229, 160, 0.45)); }
-    .login-title { font-size: 26px; font-weight: 800; color: #E6EDF7;
+    .login-title { color: #FFFFFF !important; font-size: 26px; font-weight: 800;
                    letter-spacing: -0.5px; margin-bottom: 4px; }
-    .login-sub { font-size: 13px; color: #7A8699;
+    .login-sub { color: #A0AEC0 !important; font-size: 13px;
                  margin-bottom: 6px; letter-spacing: 0.5px; }
 
     #MainMenu {visibility: hidden;} footer {visibility: hidden;}
@@ -158,7 +292,7 @@ st.markdown(
 )
 
 # ══════════════════════════════════════════════════════════════════════
-# SUPABASE (precisa existir ANTES do bloco de autenticação)
+# SUPABASE
 # ══════════════════════════════════════════════════════════════════════
 @st.cache_resource(show_spinner=False)
 def init_supabase() -> Client:
@@ -204,7 +338,6 @@ def fazer_logout():
 
 
 def render_login_screen():
-    """Tela cheia de login (sem cadastro — usuários criados no painel Supabase)."""
     st.markdown(
         """
         <div class="login-wrap">
@@ -241,7 +374,7 @@ def render_login_screen():
 
         st.markdown(
             """
-            <div style="text-align:center; margin-top:18px; color:#7A8699; font-size:12px;">
+            <div style="text-align:center; margin-top:18px; color:#A0AEC0; font-size:12px;">
                 Acesso restrito · Solicite seu cadastro ao administrador
             </div>
             """,
@@ -249,7 +382,6 @@ def render_login_screen():
         )
 
 
-# ── Gate de autenticação ───────────────────────────────────────────────
 if not st.session_state.get("auth_user"):
     render_login_screen()
     st.stop()
@@ -338,7 +470,7 @@ def get_ativo_info(ticker: str, tipo: str = "acao") -> AtivoInfo:
     margem = ((teto - cot) / teto * 100) if teto > 0 else 0.0
 
     if teto <= 0:
-        status, key, cor = "⚪ SEM DADOS", "sem", "#7A8699"
+        status, key, cor = "⚪ SEM DADOS", "sem", "#A0AEC0"
     elif cot <= teto * 0.85:
         status, key, cor = "🟢 COMPRA FORTE", "forte", "#00E5A0"
     elif cot <= teto:
@@ -362,8 +494,8 @@ def status_pill_html(info: AtivoInfo) -> str:
 def cor_status(key):
     return {
         "forte": "#00E5A0", "bom": "#4ADE80",
-        "proximo": "#FACC15", "caro": "#FF5C7A", "sem": "#7A8699",
-    }.get(key, "#7A8699")
+        "proximo": "#FACC15", "caro": "#FF5C7A", "sem": "#A0AEC0",
+    }.get(key, "#A0AEC0")
 
 
 # ══════════════════════════════════════════════════════════════════════
@@ -558,15 +690,14 @@ def section(title):
 # SIDEBAR
 # ══════════════════════════════════════════════════════════════════════
 with st.sidebar:
-    # ─── Usuário logado ───────────────────────────────────────────────
     st.markdown(
         f"""
         <div style="background: rgba(0,229,160,0.06); border: 1px solid rgba(0,229,160,0.15);
                     border-radius: 12px; padding: 10px 14px; margin-bottom: 12px;">
-            <div style="color:#7A8699; font-size:10px; font-weight:700; letter-spacing:1px;">
+            <div style="color:#A0AEC0; font-size:10px; font-weight:700; letter-spacing:1px;">
                 LOGADO COMO
             </div>
-            <div style="color:#E6EDF7; font-size:13px; font-weight:700;
+            <div style="color:#FFFFFF; font-size:13px; font-weight:700;
                         margin-top:3px; overflow:hidden; text-overflow:ellipsis;">
                 {USER_EMAIL}
             </div>
@@ -579,14 +710,13 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # ─── Logo ──────────────────────────────────────────────────────────
     st.markdown(
         """<div style="text-align:center; padding: 8px 0 20px 0;">
             <div style="font-size: 40px;">💎</div>
-            <div style="font-size: 18px; font-weight: 800; color: #00E5A0; letter-spacing: 0.5px;">
+            <div style="font-size: 18px; font-weight: 800; color: #00E5A0 !important; letter-spacing: 0.5px;">
                 GESTOR PREMIUM
             </div>
-            <div style="font-size: 11px; color: #7A8699; letter-spacing: 1px;">
+            <div style="font-size: 11px; color: #A0AEC0 !important; letter-spacing: 1px;">
                 B3 · BAZIN · TEMPO REAL
             </div>
         </div>""",
@@ -876,10 +1006,11 @@ with tabs[1]:
                            use_container_width=True)
 
 
-# ── ABA 2: CADASTRAR ───────────────────────────────────────────────────
+# ── ABA 2: CADASTRAR (COM CÁLCULO AUTOMÁTICO + TROCO) ──────────────────
 with tabs[2]:
     section("➕ Novo Ativo")
 
+    # ─── Ticker + Busca ────────────────────────────────────────────────
     c1, c2, c3 = st.columns([1, 1, 2])
     with c1:
         tipo = st.selectbox("Tipo", ["Ação", "FII"], key="cad_tipo")
@@ -901,6 +1032,7 @@ with tabs[2]:
 
     info_cad = st.session_state.get("cot_info")
 
+    # ─── Card Bazin ────────────────────────────────────────────────────
     if info_cad and st.session_state.get("cot_ticker") == ticker:
         st.markdown(
             f"""<div class="bazin-card">
@@ -933,51 +1065,193 @@ with tabs[2]:
         else:
             st.info("ℹ️ Sem histórico de dividendos suficiente para calcular o teto.")
 
+    # ─── Modo de compra ────────────────────────────────────────────────
+    section("🛒 Como você quer registrar a compra?")
+    modo = st.radio(
+        "Modo de compra",
+        ["🎯 Por quantidade de cotas", "💰 Por valor em R$"],
+        horizontal=True,
+        label_visibility="collapsed",
+        key="cad_modo",
+    )
+
+    cot_disponivel = float(info_cad.cotacao) if info_cad and info_cad.cotacao > 0 else 0.0
+    cfg_cad = carregar_config(USER_ID)
+
+    # ─── Modo "Por valor": input + preview + opção de descontar saldo ──
+    valor_investir = None
+    descontar_saldo = True
+    if modo.startswith("💰"):
+        cA, cB = st.columns([1, 2])
+        with cA:
+            valor_investir = st.number_input(
+                "💵 Valor que quero investir (R$)",
+                min_value=0.01,
+                value=1000.0,
+                step=100.0,
+                format="%.2f",
+                key="cad_valor_investir",
+            )
+            descontar_saldo = st.checkbox(
+                "💳 Descontar do saldo disponível",
+                value=True,
+                help="Se marcado, o valor realmente gasto é deduzido do saldo "
+                     "e o troco é devolvido automaticamente.",
+            )
+            if descontar_saldo:
+                st.caption(
+                    f"Saldo atual: R$ {cfg_cad.get('valor_disponivel', 0):,.2f}"
+                )
+        with cB:
+            if cot_disponivel > 0:
+                qtd_calc = int(valor_investir // cot_disponivel)
+                total_gasto = qtd_calc * cot_disponivel
+                sobra = valor_investir - total_gasto
+                st.markdown(
+                    f"""
+                    <div style="background: linear-gradient(135deg, rgba(0,229,160,0.12), rgba(0,168,232,0.06));
+                                border: 1px solid rgba(0,229,160,0.35); border-radius: 14px;
+                                padding: 18px 22px; margin-top: 6px;">
+                        <div style="color:#A0AEC0; font-size:11px; font-weight:700; letter-spacing:1px;">
+                            CÁLCULO AUTOMÁTICO
+                        </div>
+                        <div style="color:#FFFFFF; font-size:22px; font-weight:900; margin-top:6px;">
+                            🎯 Você consegue comprar <span style="color:#00E5A0;">{qtd_calc} cotas</span>
+                        </div>
+                        <div style="color:#A0AEC0; font-size:13px; margin-top:8px;">
+                            💵 Orçamento: <b style="color:#FFFFFF;">R$ {valor_investir:,.2f}</b> ÷ 
+                            R$ {cot_disponivel:.2f} = <b style="color:#FFFFFF;">{qtd_calc} cotas</b>
+                        </div>
+                        <div style="color:#A0AEC0; font-size:13px; margin-top:4px;">
+                            💸 Custo real: <b style="color:#FF5C7A;">R$ {total_gasto:,.2f}</b> · 
+                            🔄 Troco: <b style="color:#00E5A0;">R$ {sobra:,.2f}</b>
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.warning("⚠️ Busque a cotação do ticker acima para calcular automaticamente.")
+
+    # ─── Formulário final ──────────────────────────────────────────────
     with st.form("form_novo"):
         c1, c2, c3 = st.columns(3)
+
         with c1:
-            quantidade = st.number_input("Quantidade", min_value=1, step=1, value=100)
+            if modo.startswith("🎯"):
+                quantidade = st.number_input(
+                    "Quantidade de cotas", min_value=1, step=1, value=100
+                )
+            else:
+                st.markdown("**Quantidade calculada**")
+                if cot_disponivel > 0 and valor_investir:
+                    qtd_prev = int(valor_investir // cot_disponivel)
+                    st.markdown(
+                        f"<div style='font-size:26px; font-weight:900; color:#00E5A0; "
+                        f"padding: 6px 0;'>{qtd_prev} cotas</div>",
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown(
+                        "<div style='color:#FF5C7A; font-weight:700; padding:6px 0;'>"
+                        "Informe o ticker e o valor acima</div>",
+                        unsafe_allow_html=True,
+                    )
+
         with c2:
-            cot_val = float(info_cad.cotacao) if info_cad and info_cad.cotacao > 0 else 10.0
-            usar_auto = st.checkbox("🎯 Usar cotação do mercado", value=(cot_val > 10.0))
-            preco_manual = st.number_input(
-                "Preço (R$)", min_value=0.01, step=0.01, format="%.2f",
-                value=cot_val, disabled=usar_auto,
+            cot_val = cot_disponivel if cot_disponivel > 0 else 10.0
+            usar_auto = st.checkbox(
+                "🎯 Usar cotação do mercado",
+                value=(cot_disponivel > 0),
+                help="Desmarque para digitar o preço manualmente.",
             )
+            preco_manual = st.number_input(
+                "Preço (R$)",
+                min_value=0.01,
+                step=0.01,
+                format="%.2f",
+                value=cot_val,
+                disabled=usar_auto,
+            )
+
         with c3:
             data_compra = st.date_input("Data da compra", value=date.today())
             registrar = st.checkbox("Registrar no histórico de aportes", value=True)
 
-        if st.form_submit_button("💾 Cadastrar ativo", use_container_width=True):
+        submitted = st.form_submit_button(
+            "💾 Cadastrar ativo", use_container_width=True
+        )
+
+        if submitted:
             if not ticker:
                 st.error("Informe o ticker.")
             elif usar_auto and cot_val <= 0:
                 st.error("Sem cotação disponível. Desmarque 'Usar cotação do mercado'.")
+            elif modo.startswith("💰") and (valor_investir is None or valor_investir <= 0):
+                st.error("Informe um valor válido para investir.")
             else:
-                preco_final = cot_val if usar_auto else float(preco_manual)
+                preco_final = float(cot_val) if usar_auto else float(preco_manual)
+
+                # Quantidade final
+                if modo.startswith("🎯"):
+                    qtd_final = int(quantidade)
+                    total_gasto_final = qtd_final * preco_final
+                    sobra_final = 0.0
+                else:
+                    qtd_final = int(valor_investir // preco_final)
+                    if qtd_final <= 0:
+                        st.error(
+                            f"Valor insuficiente. Com R$ {valor_investir:.2f} "
+                            f"a R$ {preco_final:.2f} você não compra nem 1 cota."
+                        )
+                        st.stop()
+                    total_gasto_final = qtd_final * preco_final
+                    sobra_final = valor_investir - total_gasto_final
+
                 tabela = "acoes" if tipo == "Ação" else "fiis"
+
                 try:
+                    # 1) Salva o ativo
                     salvar_ativo(
                         tabela,
                         {
                             "ticker": ticker,
-                            "quantidade": int(quantidade),
+                            "quantidade": qtd_final,
                             "preco_medio": preco_final,
                             "data_compra": str(data_compra),
                         },
                         USER_ID,
                     )
+
+                    # 2) Registra no histórico
                     if registrar:
-                        registrar_aporte(ticker, tipo, quantidade, preco_final,
-                                         data_compra, USER_ID)
+                        registrar_aporte(
+                            ticker, tipo, qtd_final, preco_final, data_compra, USER_ID
+                        )
+
+                    # 3) Desconta do saldo (somente o que foi gasto)
+                    if modo.startswith("💰") and descontar_saldo:
+                        saldo_atual = float(cfg_cad.get("valor_disponivel", 0.0))
+                        novo_saldo = saldo_atual - total_gasto_final
+                        atualizar_config(USER_ID, valor=novo_saldo)
+                        msg_saldo = (
+                            f" · 💳 Saldo: R$ {saldo_atual:,.2f} → "
+                            f"R$ {novo_saldo:,.2f} (sobra devolvida: R$ {sobra_final:.2f})"
+                        )
+                    else:
+                        msg_saldo = ""
+
                     origem = "mercado" if usar_auto else "manual"
                     st.success(
                         f"✅ {tipo} **{ticker}** cadastrado — "
-                        f"{quantidade} un. × R$ {preco_final:.2f} ({origem})"
+                        f"{qtd_final} cotas × R$ {preco_final:.2f} "
+                        f"= **R$ {total_gasto_final:,.2f}** ({origem}){msg_saldo}"
                     )
+
                     for k in ("cot_info", "cot_ticker"):
                         st.session_state.pop(k, None)
                     st.rerun()
+
                 except Exception as e:
                     st.error(f"Erro ao salvar: {e}")
 
@@ -1181,9 +1455,14 @@ with tabs[5]:
         df_a_e = enriquecer(df_a, "acao")
         df_f_e = enriquecer(df_f, "fii")
 
+        cfg_reb = carregar_config(USER_ID)
+        saldo_disp_reb = float(cfg_reb.get("valor_disponivel", 0.0))
+
         valor_aporte = st.number_input(
             "Valor disponível para aporte (R$)", min_value=0.0,
-            value=1000.0, step=100.0,
+            value=saldo_disp_reb if saldo_disp_reb > 0 else 1000.0,
+            step=100.0,
+            help="Por padrão usa o saldo disponível da barra lateral.",
         )
         priorizar_bazin = st.checkbox(
             "🎯 Priorizar ativos abaixo do Preço Teto de Bazin", value=True,
