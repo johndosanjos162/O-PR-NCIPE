@@ -28,7 +28,7 @@ st.set_page_config(
 BAZIN_TAXA = 0.06  # yield mínimo desejado (6% a.a.)
 
 # ══════════════════════════════════════════════════════════════════════
-# CSS PREMIUM — CORES CORRIGIDAS
+# CSS PREMIUM — CORES CORRIGIDAS (inclui inputs disabled)
 # ══════════════════════════════════════════════════════════════════════
 st.markdown(
     """
@@ -139,7 +139,9 @@ st.markdown(
     }
     .stDownloadButton > button p { color: #060B14 !important; font-weight: 700 !important; }
 
-    /* INPUTS */
+    /* ══════════════════════════════════════════════════════════
+       INPUTS — CORRIGIDO (inclui disabled com contraste forte)
+       ══════════════════════════════════════════════════════════ */
     .stTextInput label, .stNumberInput label, .stSelectbox label,
     .stDateInput label, .stCheckbox label, .stRadio label,
     .stTextArea label, .stSlider label, .stMultiSelect label,
@@ -148,22 +150,57 @@ st.markdown(
         font-weight: 600 !important;
     }
 
-    .stTextInput input, .stNumberInput input, .stDateInput input,
+    /* INPUT normal — texto branco puro */
+    .stTextInput input,
+    .stNumberInput input,
+    .stDateInput input,
     .stTextArea textarea {
         background: #1B2740 !important;
         color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        caret-color: #00E5A0 !important;
         border: 1px solid rgba(255,255,255,0.12) !important;
         border-radius: 10px !important;
-        font-weight: 600 !important;
-    }
-    .stTextInput input::placeholder, .stNumberInput input::placeholder {
-        color: #6B7A99 !important;
-    }
-    .stTextInput input:focus, .stNumberInput input:focus {
-        border-color: #00E5A0 !important;
-        box-shadow: 0 0 0 2px rgba(0,229,160,0.2) !important;
+        font-weight: 700 !important;
+        font-size: 16px !important;
+        opacity: 1 !important;
     }
 
+    /* INPUT desabilitado — texto verde neon para contraste máximo */
+    .stNumberInput input:disabled,
+    .stTextInput input:disabled,
+    .stDateInput input:disabled,
+    .stNumberInput input[disabled],
+    .stTextInput input[disabled] {
+        background: #24325A !important;
+        color: #00E5A0 !important;
+        -webkit-text-fill-color: #00E5A0 !important;
+        opacity: 1 !important;
+        cursor: not-allowed !important;
+        font-weight: 800 !important;
+        border: 1px solid rgba(0, 229, 160, 0.35) !important;
+    }
+
+    /* Placeholder */
+    .stTextInput input::placeholder,
+    .stNumberInput input::placeholder,
+    .stTextArea textarea::placeholder {
+        color: #6B7A99 !important;
+        -webkit-text-fill-color: #6B7A99 !important;
+        opacity: 1 !important;
+    }
+
+    /* Focus */
+    .stTextInput input:focus,
+    .stNumberInput input:focus,
+    .stDateInput input:focus {
+        border-color: #00E5A0 !important;
+        box-shadow: 0 0 0 2px rgba(0,229,160,0.2) !important;
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* Botões +/- do number input */
     .stNumberInput button {
         background: #24325A !important;
         color: #FFFFFF !important;
@@ -173,8 +210,37 @@ st.markdown(
         background: #2E3F73 !important;
         color: #00E5A0 !important;
     }
-    .stNumberInput button svg { fill: #FFFFFF !important; }
+    .stNumberInput button svg,
+    .stNumberInput button svg path,
+    .stNumberInput button svg line {
+        fill: #FFFFFF !important;
+        stroke: #FFFFFF !important;
+    }
 
+    /* Container do number input */
+    .stNumberInput > div > div,
+    div[data-baseweb="input"],
+    div[data-baseweb="base-input"] {
+        background: #1B2740 !important;
+        border-radius: 10px !important;
+    }
+
+    /* Garantia extra: qualquer input dentro do form */
+    [data-testid="stForm"] input {
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+        background: #1B2740 !important;
+        opacity: 1 !important;
+    }
+    [data-testid="stForm"] input:disabled {
+        color: #00E5A0 !important;
+        -webkit-text-fill-color: #00E5A0 !important;
+        background: #24325A !important;
+        opacity: 1 !important;
+        font-weight: 800 !important;
+    }
+
+    /* Selectbox */
     .stSelectbox div[data-baseweb="select"] > div {
         background: #1B2740 !important;
         color: #FFFFFF !important;
@@ -1006,11 +1072,10 @@ with tabs[1]:
                            use_container_width=True)
 
 
-# ── ABA 2: CADASTRAR (COM CÁLCULO AUTOMÁTICO + TROCO) ──────────────────
+# ── ABA 2: CADASTRAR ───────────────────────────────────────────────────
 with tabs[2]:
     section("➕ Novo Ativo")
 
-    # ─── Ticker + Busca ────────────────────────────────────────────────
     c1, c2, c3 = st.columns([1, 1, 2])
     with c1:
         tipo = st.selectbox("Tipo", ["Ação", "FII"], key="cad_tipo")
@@ -1032,7 +1097,6 @@ with tabs[2]:
 
     info_cad = st.session_state.get("cot_info")
 
-    # ─── Card Bazin ────────────────────────────────────────────────────
     if info_cad and st.session_state.get("cot_ticker") == ticker:
         st.markdown(
             f"""<div class="bazin-card">
@@ -1065,7 +1129,6 @@ with tabs[2]:
         else:
             st.info("ℹ️ Sem histórico de dividendos suficiente para calcular o teto.")
 
-    # ─── Modo de compra ────────────────────────────────────────────────
     section("🛒 Como você quer registrar a compra?")
     modo = st.radio(
         "Modo de compra",
@@ -1078,7 +1141,6 @@ with tabs[2]:
     cot_disponivel = float(info_cad.cotacao) if info_cad and info_cad.cotacao > 0 else 0.0
     cfg_cad = carregar_config(USER_ID)
 
-    # ─── Modo "Por valor": input + preview + opção de descontar saldo ──
     valor_investir = None
     descontar_saldo = True
     if modo.startswith("💰"):
@@ -1133,7 +1195,6 @@ with tabs[2]:
             else:
                 st.warning("⚠️ Busque a cotação do ticker acima para calcular automaticamente.")
 
-    # ─── Formulário final ──────────────────────────────────────────────
     with st.form("form_novo"):
         c1, c2, c3 = st.columns(3)
 
@@ -1192,7 +1253,6 @@ with tabs[2]:
             else:
                 preco_final = float(cot_val) if usar_auto else float(preco_manual)
 
-                # Quantidade final
                 if modo.startswith("🎯"):
                     qtd_final = int(quantidade)
                     total_gasto_final = qtd_final * preco_final
@@ -1211,7 +1271,6 @@ with tabs[2]:
                 tabela = "acoes" if tipo == "Ação" else "fiis"
 
                 try:
-                    # 1) Salva o ativo
                     salvar_ativo(
                         tabela,
                         {
@@ -1223,13 +1282,11 @@ with tabs[2]:
                         USER_ID,
                     )
 
-                    # 2) Registra no histórico
                     if registrar:
                         registrar_aporte(
                             ticker, tipo, qtd_final, preco_final, data_compra, USER_ID
                         )
 
-                    # 3) Desconta do saldo (somente o que foi gasto)
                     if modo.startswith("💰") and descontar_saldo:
                         saldo_atual = float(cfg_cad.get("valor_disponivel", 0.0))
                         novo_saldo = saldo_atual - total_gasto_final
